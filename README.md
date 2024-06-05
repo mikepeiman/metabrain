@@ -1,38 +1,67 @@
-# create-svelte
+# The ultimate Operating System For Life
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+Stop wasting your precious time, energy and attention.
+Discard distractions and overwhelm.
+Capture, retrieve, plan and execute with crystalline clarity and confidence.
 
-## Creating a project
+## Background
 
-If you're seeing this, you've probably already done this step. Congrats!
+20+ years seeking the best knowledge-management, mindmapping, task-management, personal tracking and operational tools for living a better life.
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+Over a decade of notes taken, day and night, as insights and ideas arrive. 
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+Eleven years on the self-taught developer journey.
 
-## Developing
+Countless learning projects along the way.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Here we are. 
 
-```bash
-npm run dev
+# Your _active_ second brain
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## A few fundamental principles
 
-## Building
+1. Maximize efficiency; minimize barriers to effective action
+2. Attractive UI matters; make it a habitable home
+3. Leverage visual intelligence for intuitive action, context, and knowledge density
+4. Favor maximimum customizability and options for the user, but provide sensible defaults (will include a community marketplace for themes, widgets, processes etc)
+5. Unify the environment and eliminate knowledge silos and dead/lost artifacts
 
-To create a production version of your app:
+# Impetus for the development of this tool
 
-```bash
-npm run build
-```
+### Deficiencies of existing tools
+1. Information is 
+	1. fragmented across multiple apps
+	2. hidden and lost within files and folders
+	3. difficult to retrieve due to missing context
+	4. hard to track/store/log with context due to poor UI & lack of enabling features
+2. Priorities are
+	1. difficult to track coherently amongst the multifarious information silos and lost notes
+	2. forgotten
+	3. wasting time and energy to continually recreate
+3. Actions are
+	1. difficult to plan due to important context being missing
+	2. out of order due to priorities being misplaced
+	3. wasting time and energy to continually recreate
+4. Information & insights are lost due to 
+	1. lack of interconnections
+	2. lack of visibility
+5. Time and energy are wasted due to all of the above
 
-You can preview the production build with `npm run preview`.
+### Deficiencies of the human condition
+1. Energy is limited
+2. Time is limited
+3. Attention is limited
+4. Memory is fallible
+5. Judgment is fallible and based on incomplete information and context
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+All of the above are subject to further degradation based on
+1. Illness & health limitations
+2. Fatigue
+3. Distraction - work and life environment
+4. Inherent personal characteristics - genetics, neurodivergence, trauma, injury, metabolism
+
+# Final thoughts
+
+The conception of Metabrain is rooted in my challenges like handling a vast number of projects, combating brain fog, the desire for efficient planning, and tackling the anxiety of undefined task durations.
+
+This is not just an app; it's a solution emanating from my personal experiences and struggles. The vision of Metabrain is a direct reflection of my principles, needs, and desires for efficiency and comprehensive planning.
