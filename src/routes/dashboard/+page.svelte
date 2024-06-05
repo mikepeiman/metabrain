@@ -30,6 +30,8 @@
     import * as Table from "$lib/components/ui/table/index.js";
     import * as Tabs from "$lib/components/ui/tabs/index.js";
     import * as Tooltip from "$lib/components/ui/tooltip/index.js";
+    
+   import placeholderImg from "$images/placeholder.jpg";
   </script>
   
   <div class="flex min-h-screen w-full flex-col bg-muted/40">
@@ -217,7 +219,7 @@
               builders={[builder]}
             >
               <img
-                src="$images/placeholder.jpg"
+                src="{placeholderImg}"
                 width={36}
                 height={36}
                 alt="Avatar"
