@@ -9,6 +9,12 @@
 	// });
 </script>
 
-<slot></slot>
+<div class="flex min-h-screen w-full items-center justify-center bg-cyan-950">
+	<slot></slot>
+</div>
 
-<style></style>
+<style>
+ :global(body) {
+		min-height: 100vh;
+	}
+</style>
