@@ -8,9 +8,28 @@
     import Rocket from "svelte-radix/Rocket.svelte";
    
     import * as Command from "$lib/components/ui/command/index.js";
+
+    import { onMount } from "svelte";
+ 
+  let open = false;
+ 
+  onMount(() => {
+    function handleKeydown(e: KeyboardEvent) {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        open = !open;
+      }
+    }
+ 
+    document.addEventListener("keydown", handleKeydown);
+ 
+    return () => {
+      document.removeEventListener("keydown", handleKeydown);
+    };
+  });
   </script>
    
-  <Command.Root class="max-w-[450px] rounded-lg border shadow-md">
+  <Command.Dialog bind:open class="max-w-[450px] rounded-lg border shadow-md">
     <Command.Input placeholder="Type a command or search..." />
     <Command.List>
       <Command.Empty>No results found.</Command.Empty>
@@ -47,4 +66,4 @@
         </Command.Item>
       </Command.Group>
     </Command.List>
-  </Command.Root>
+  </Command.Dialog>
