@@ -7,13 +7,14 @@
 	// 		console.log('Shortcut triggered');
 	// 	}
 	// });
-
+import MambaHeader from '$lib/components/MambaHeader.svelte';
 
 
 
 </script>
 
-<div class="flex min-h-screen w-full items-center justify-center bg-cyan-950">
+<MambaHeader />
+<div class="flex min-h-screen w-full items-center justify-center bg-black text-white">
 	<slot></slot>
 </div>
 

@@ -1,5 +1,6 @@
 .DS_Store
 node_modules
+pb_migrations
 /build
 /.svelte-kit
 /package
