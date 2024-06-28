@@ -17,6 +17,12 @@ const config = {
 			"@/*": "./src/lib/*",
 			"$images": "./src/static/images",
 			"$images/*": "./src/static/images/*",
+			"$utils": "./src/lib/utils",
+			"$utils/*": "./src/lib/utils/*",
+			"$stores": "./src/lib/stores",
+			"$stores/*": "./src/lib/stores/*",
+			"$components": "./src/lib/components",
+			"$components/*": "./src/lib/components/*",
 		  },
 	}
 };
