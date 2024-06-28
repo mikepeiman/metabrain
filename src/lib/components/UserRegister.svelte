@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { getPb } from '$lib/utils/pocketbaseUtils';
     import { goto } from '$app/navigation';
-
+    
+    import { getPb } from '$utils/pocketbaseUtils';
     const pb = getPb();
 
     let email = '';

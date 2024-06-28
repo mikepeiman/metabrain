@@ -19,7 +19,7 @@
 	});
 </script>
 
-<div class="flex w-screen h-screen bg-white items-center justify-center">
+<div class="flex  items-center justify-center text-black dark:text-white ">
 <div class="flex">
 	<ul>
 		{#each notes as note}
