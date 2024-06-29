@@ -1,7 +1,7 @@
 // src/lib/stores/auth.ts
 import { writable } from 'svelte/store';
-import { getPb } from '$lib/utils/pocketbaseUtils';
-const pb = getPb();
+    import { pb } from '$lib/utils/pocketbase';
+ 
 
 export const authStore = writable(pb.authStore);
 

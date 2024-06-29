@@ -1,7 +1,7 @@
 <script>
-import { getPb } from '$utils/pocketbaseUtils';
-const pb = getPb();
-	import { currentUser } from '$utils/pocketbaseAuth';
+	import { getPb } from '$utils/pocketbaseUtils';
+
+	import { currentUser } from '@/utils/pocketbase';
 	import { goto } from '$app/navigation';
 
 	function logout() {

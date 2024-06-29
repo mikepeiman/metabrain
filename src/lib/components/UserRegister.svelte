@@ -2,7 +2,7 @@
     import { goto } from '$app/navigation';
     
     import { getPb } from '$utils/pocketbaseUtils';
-    const pb = getPb();
+ 
 
     let email = '';
     let password = '';

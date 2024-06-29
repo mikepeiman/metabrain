@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	
-    import { getPb } from '$utils/pocketbaseUtils';
-    const pb = getPb();
+    import { pb } from '$utils/pocketbase';
+ 
 	let notes: any[] = [];
 
 	onMount(async () => {

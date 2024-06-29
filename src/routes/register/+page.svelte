@@ -4,7 +4,7 @@
     export let data: PageData;
 
     import { getPb } from '$utils/pocketbaseUtils';
-    const pb = getPb();
+ 
     import { goto } from '$app/navigation';
 
     let email = '';
