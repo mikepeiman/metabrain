@@ -1,5 +1,5 @@
 <script>
-	import { getPb } from '$utils/pocketbaseUtils';
+	import { pb } from '$utils/pocketbase';
 
 	import { currentUser } from '@/utils/pocketbase';
 	import { goto } from '$app/navigation';
