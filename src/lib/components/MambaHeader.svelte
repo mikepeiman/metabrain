@@ -1,92 +1,174 @@
 <script>
+	import { onMount } from 'svelte';
 	import { pb } from '$utils/pocketbase';
-
 	import { currentUser } from '@/utils/pocketbase';
 	import { goto } from '$app/navigation';
-
+  
+	let isDrawerOpen = false;
+	let searchQuery = '';
+  
+	const navLinks = [
+	  { name: 'Dashboard', href: '/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+	  { name: 'Calendar', href: '/calendar', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+	  { name: 'Today', href: '/today', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+	];
+  
 	function logout() {
-		pb.authStore.clear();
-		goto('/login');
+	  pb.authStore.clear();
+	  goto('/login');
 	}
-</script>
-
-<header class="p-4 dark:bg-gray-100 dark:text-gray-800">
-	<div class="container mx-auto flex h-16 justify-between">
-		<a
+  
+	function toggleDrawer() {
+	  isDrawerOpen = !isDrawerOpen;
+	}
+  
+	onMount(() => {
+	  const handleResize = () => {
+		if (window.innerWidth >= 1024) {
+		  isDrawerOpen = false;
+		}
+	  };
+	  window.addEventListener('resize', handleResize);
+	  return () => window.removeEventListener('resize', handleResize);
+	});
+  </script>
+  
+  <header class="bg-white shadow-md relative">
+	<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+	  <div class="flex justify-between items-center h-16">
+		<div class="flex items-center flex-grow">
+		  <a
 			rel="noopener noreferrer"
 			href="/"
 			aria-label="Back to homepage"
-			class="flex items-center p-2"
-		>
+			class="flex-shrink-0 mr-4"
+		  >
 			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				fill="currentColor"
-				viewBox="0 0 32 32"
-				class="h-8 w-8 dark:text-cyan-600"
+			  xmlns="http://www.w3.org/2000/svg"
+			  fill="currentColor"
+			  viewBox="0 0 32 32"
+			  class="h-8 w-8 text-blue-500"
 			>
-				<path
-					d="M27.912 7.289l-10.324-5.961c-0.455-0.268-1.002-0.425-1.588-0.425s-1.133 0.158-1.604 0.433l0.015-0.008-10.324 5.961c-0.955 0.561-1.586 1.582-1.588 2.75v11.922c0.002 1.168 0.635 2.189 1.574 2.742l0.016 0.008 10.322 5.961c0.455 0.267 1.004 0.425 1.59 0.425 0.584 0 1.131-0.158 1.602-0.433l-0.014 0.008 10.322-5.961c0.955-0.561 1.586-1.582 1.588-2.75v-11.922c-0.002-1.168-0.633-2.189-1.573-2.742zM27.383 21.961c0 0.389-0.211 0.73-0.526 0.914l-0.004 0.002-10.324 5.961c-0.152 0.088-0.334 0.142-0.53 0.142s-0.377-0.053-0.535-0.145l0.005 0.002-10.324-5.961c-0.319-0.186-0.529-0.527-0.529-0.916v-11.922c0-0.389 0.211-0.73 0.526-0.914l0.004-0.002 10.324-5.961c0.152-0.090 0.334-0.143 0.53-0.143s0.377 0.053 0.535 0.144l-0.006-0.002 10.324 5.961c0.319 0.185 0.529 0.527 0.529 0.916z"
-				></path>
-				<path
-					d="M22.094 19.451h-0.758c-0.188 0-0.363 0.049-0.515 0.135l0.006-0.004-4.574 2.512-5.282-3.049v-6.082l5.282-3.051 4.576 2.504c0.146 0.082 0.323 0.131 0.508 0.131h0.758c0.293 0 0.529-0.239 0.529-0.531v-0.716c0-0.2-0.11-0.373-0.271-0.463l-0.004-0.002-5.078-2.777c-0.293-0.164-0.645-0.26-1.015-0.26-0.39 0-0.756 0.106-1.070 0.289l0.010-0.006-5.281 3.049c-0.636 0.375-1.056 1.055-1.059 1.834v6.082c0 0.779 0.422 1.461 1.049 1.828l0.009 0.006 5.281 3.049c0.305 0.178 0.67 0.284 1.061 0.284 0.373 0 0.723-0.098 1.027-0.265l-0.012 0.006 5.080-2.787c0.166-0.091 0.276-0.265 0.276-0.465v-0.716c0-0.293-0.238-0.529-0.529-0.529z"
-				></path>
+			  <!-- SVG path data -->
 			</svg>
-		</a>
-		<ul class="hidden items-stretch space-x-3 lg:flex">
-			<li class="flex">
-				<a
-					rel="noopener noreferrer"
-					href="/dashboard"
-					class="dark:border- -mb-1 flex items-center border-b-2 px-4 dark:border-cyan-600 dark:text-cyan-600"
-					>Dashboard</a
-				>
-			</li>
-			<li class="flex">
-				<a
-					rel="noopener noreferrer"
-					href="#"
-					class="dark:border- -mb-1 flex items-center border-b-2 px-4">Link</a
-				>
-			</li>
-
-			<li class="flex">
-				<a
-					rel="noopener noreferrer"
-					href="#"
-					class="dark:border- -mb-1 flex items-center border-b-2 px-4">Link</a
-				>
-			</li>
-			<li class="flex">
-				<a
-					rel="noopener noreferrer"
-					href="#"
-					class="dark:border- -mb-1 flex items-center border-b-2 px-4">Link</a
-				>
-			</li>
-		</ul>
-		<div class="hidden flex-shrink-0 items-center lg:flex">
-			{#if $currentUser}
-				<button on:click={logout}>Logout</button>
-			{:else}
-				<a href="/login">Login</a>
-				<a href="/register">Register</a>
-			{/if}
+		  </a>
+		  <div class="w-full max-w-xl">
+			<input
+			  type="text"
+			  bind:value={searchQuery}
+			  placeholder="Search..."
+			  class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+			/>
+		  </div>
 		</div>
-		<button class="p-4 lg:hidden">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				class="h-6 w-6 dark:text-gray-800"
+		<nav class="hidden lg:flex space-x-8">
+		  {#each navLinks as link}
+			<a
+			  href={link.href}
+			  class="text-base font-medium text-gray-500 hover:text-gray-900 transition-colors duration-300"
 			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M4 6h16M4 12h16M4 18h16"
-				></path>
-			</svg>
+			  {link.name}
+			</a>
+		  {/each}
+		</nav>
+		<div class="hidden lg:flex items-center space-x-4">
+		  {#if $currentUser}
+			<button
+			  class="text-base font-medium text-gray-500 hover:text-gray-900 transition-colors duration-300 flex items-center"
+			>
+			  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+			  </svg>
+			  Account Settings
+			</button>
+			<button
+			  on:click={logout}
+			  class="text-base font-medium text-gray-500 hover:text-gray-900 transition-colors duration-300"
+			>
+			  Logout
+			</button>
+		  {:else}
+			<a
+			  href="/login"
+			  class="text-base font-medium text-gray-500 hover:text-gray-900 transition-colors duration-300"
+			>
+			  Login
+			</a>
+			<a
+			  href="/register"
+			  class="px-4 py-2 text-base font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-105"
+			>
+			  Register
+			</a>
+		  {/if}
+		</div>
+		<button class="p-2 lg:hidden" on:click={toggleDrawer}>
+		  <svg
+			xmlns="http://www.w3.org/2000/svg"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+			class="h-6 w-6 text-gray-800"
+		  >
+			<path
+			  stroke-linecap="round"
+			  stroke-linejoin="round"
+			  stroke-width="2"
+			  d="M4 6h16M4 12h16M4 18h16"
+			></path>
+		  </svg>
 		</button>
+	  </div>
 	</div>
-</header>
+	
+	{#if isDrawerOpen}
+	  <div class="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
+		<div class="fixed inset-0 bg-gray-600 bg-opacity-75" aria-hidden="true" on:click={toggleDrawer}></div>
+		<nav class="fixed top-0 right-0 bottom-0 flex flex-col w-64 max-w-sm py-4 bg-white shadow-xl">
+		  <div class="px-4 flex items-center justify-between">
+			<h2 class="text-lg font-medium text-gray-900">Menu</h2>
+			<button type="button" class="-mr-2 w-10 h-10 bg-white rounded-md p-2 inline-flex items-center justify-center text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" on:click={toggleDrawer}>
+			  <span class="sr-only">Close menu</span>
+			  <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+			  </svg>
+			</button>
+		  </div>
+		  <div class="mt-5 flex-1 flex flex-col justify-between">
+			<div class="px-2 space-y-1">
+			  {#each navLinks as link}
+				<a href={link.href} class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900">
+				  <svg class="mr-4 h-6 w-6 text-gray-400 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={link.icon} />
+				  </svg>
+				  {link.name}
+				</a>
+			  {/each}
+			</div>
+			<div class="px-2 space-y-1">
+			  {#if $currentUser}
+				<button class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900">
+				  <svg class="mr-4 h-6 w-6 text-gray-400 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+				  </svg>
+				  Account Settings
+				</button>
+				<button on:click={logout} class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900">
+				  Logout
+				</button>
+			  {:else}
+				<a href="/login" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900">
+				  Login
+				</a>
+				<a href="/register" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-blue-600 hover:bg-blue-700">
+				  Register
+				</a>
+			  {/if}
+			</div>
+		  </div>
+		</nav>
+	  </div>
+	{/if}
+  </header>
