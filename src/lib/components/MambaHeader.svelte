@@ -1,16 +1,17 @@
-<script>
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { pb } from '$utils/pocketbase';
 	import { currentUser } from '@/utils/pocketbase';
 	import { goto } from '$app/navigation';
+	import { IconSearch, IconDashboard, IconCalendar, IconClock, IconSettings, IconLogout, IconLogin, IconUserPlus, IconMenu2 } from '@tabler/icons-svelte';
   
 	let isDrawerOpen = false;
 	let searchQuery = '';
   
 	const navLinks = [
-	  { name: 'Dashboard', href: '/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-	  { name: 'Calendar', href: '/calendar', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-	  { name: 'Today', href: '/today', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+	  { name: 'Dashboard', href: '/dashboard', icon: IconDashboard },
+	  { name: 'Calendar', href: '/calendar', icon: IconCalendar },
+	  { name: 'Today', href: '/today', icon: IconClock },
 	];
   
 	function logout() {
@@ -35,89 +36,66 @@
   
   <header class="bg-white shadow-md relative">
 	<div class="container mx-auto px-4 sm:px-6 lg:px-8">
-	  <div class="flex justify-between items-center h-16">
-		<div class="flex items-center flex-grow">
-		  <a
-			rel="noopener noreferrer"
-			href="/"
-			aria-label="Back to homepage"
-			class="flex-shrink-0 mr-4"
-		  >
-			<svg
-			  xmlns="http://www.w3.org/2000/svg"
-			  fill="currentColor"
-			  viewBox="0 0 32 32"
-			  class="h-8 w-8 text-blue-500"
-			>
-			  <!-- SVG path data -->
-			</svg>
-		  </a>
-		  <div class="w-full max-w-xl">
+	  <div class="header-grid">
+		<a href="/" class="logo-area" aria-label="Back to homepage">
+		  <img src="/images/metabrain-logo.svg" alt="MetaBrain Logo" class="h-8 w-auto">
+		</a>
+		<div class="search-area">
+		  <div class="relative">
+			<IconSearch class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
 			<input
 			  type="text"
 			  bind:value={searchQuery}
 			  placeholder="Search..."
-			  class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+			  class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 			/>
 		  </div>
 		</div>
-		<nav class="hidden lg:flex space-x-8">
+		<nav class="nav-area hidden lg:flex space-x-8">
 		  {#each navLinks as link}
 			<a
 			  href={link.href}
-			  class="text-base font-medium text-gray-500 hover:text-gray-900 transition-colors duration-300"
+			  class="text-base font-medium text-gray-500 hover:text-gray-900 transition-colors duration-300 flex items-center"
 			>
+			  <svelte:component this={link.icon} class="mr-2" size={20} />
 			  {link.name}
 			</a>
 		  {/each}
 		</nav>
-		<div class="hidden lg:flex items-center space-x-4">
+		<div class="account-area hidden lg:flex items-center space-x-4">
 		  {#if $currentUser}
 			<button
 			  class="text-base font-medium text-gray-500 hover:text-gray-900 transition-colors duration-300 flex items-center"
 			>
-			  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-			  </svg>
+			  <IconSettings class="mr-2" size={20} />
 			  Account Settings
 			</button>
 			<button
 			  on:click={logout}
-			  class="text-base font-medium text-gray-500 hover:text-gray-900 transition-colors duration-300"
+			  class="text-base font-medium text-gray-500 hover:text-gray-900 transition-colors duration-300 flex items-center"
 			>
+			  <IconLogout class="mr-2" size={20} />
 			  Logout
 			</button>
 		  {:else}
 			<a
 			  href="/login"
-			  class="text-base font-medium text-gray-500 hover:text-gray-900 transition-colors duration-300"
+			  class="text-base font-medium text-gray-500 hover:text-gray-900 transition-colors duration-300 flex items-center"
 			>
+			  <IconLogin class="mr-2" size={20} />
 			  Login
 			</a>
 			<a
 			  href="/register"
-			  class="px-4 py-2 text-base font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-105"
+			  class="px-4 py-2 text-base font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-300 transform hover:scale-105 flex items-center"
 			>
+			  <IconUserPlus class="mr-2" size={20} />
 			  Register
 			</a>
 		  {/if}
 		</div>
-		<button class="p-2 lg:hidden" on:click={toggleDrawer}>
-		  <svg
-			xmlns="http://www.w3.org/2000/svg"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke="currentColor"
-			class="h-6 w-6 text-gray-800"
-		  >
-			<path
-			  stroke-linecap="round"
-			  stroke-linejoin="round"
-			  stroke-width="2"
-			  d="M4 6h16M4 12h16M4 18h16"
-			></path>
-		  </svg>
+		<button class="menu-button p-2 lg:hidden" on:click={toggleDrawer}>
+		  <IconMenu2 size={24} />
 		</button>
 	  </div>
 	</div>
@@ -130,39 +108,35 @@
 			<h2 class="text-lg font-medium text-gray-900">Menu</h2>
 			<button type="button" class="-mr-2 w-10 h-10 bg-white rounded-md p-2 inline-flex items-center justify-center text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" on:click={toggleDrawer}>
 			  <span class="sr-only">Close menu</span>
-			  <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-			  </svg>
+			  <IconMenu2 size={24} />
 			</button>
 		  </div>
 		  <div class="mt-5 flex-1 flex flex-col justify-between">
 			<div class="px-2 space-y-1">
 			  {#each navLinks as link}
 				<a href={link.href} class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900">
-				  <svg class="mr-4 h-6 w-6 text-gray-400 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={link.icon} />
-				  </svg>
+				  <svelte:component this={link.icon} class="mr-4 inline" size={20} />
 				  {link.name}
 				</a>
 			  {/each}
 			</div>
 			<div class="px-2 space-y-1">
 			  {#if $currentUser}
-				<button class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900">
-				  <svg class="mr-4 h-6 w-6 text-gray-400 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-				  </svg>
+				<button class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900">
+				  <IconSettings class="mr-4 inline" size={20} />
 				  Account Settings
 				</button>
-				<button on:click={logout} class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900">
+				<button on:click={logout} class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900">
+				  <IconLogout class="mr-4 inline" size={20} />
 				  Logout
 				</button>
 			  {:else}
 				<a href="/login" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-gray-900">
+				  <IconLogin class="mr-4 inline" size={20} />
 				  Login
 				</a>
 				<a href="/register" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-blue-600 hover:bg-blue-700">
+				  <IconUserPlus class="mr-4 inline" size={20} />
 				  Register
 				</a>
 			  {/if}
@@ -172,3 +146,54 @@
 	  </div>
 	{/if}
   </header>
+  
+  <style>
+	.header-grid {
+	  display: grid;
+	  grid-template-columns: auto 1fr auto auto;
+	  grid-template-areas: "logo search nav account";
+	  gap: 1rem;
+	  align-items: center;
+	  height: 4rem;
+	}
+  
+	.logo-area {
+	  grid-area: logo;
+	}
+  
+	.search-area {
+	  grid-area: search;
+	}
+  
+	.nav-area {
+	  grid-area: nav;
+	}
+  
+	.account-area {
+	  grid-area: account;
+	}
+  
+	.menu-button {
+	  display: none;
+	}
+  
+	@media (max-width: 1023px) {
+	  .header-grid {
+		grid-template-columns: auto 1fr auto;
+		grid-template-areas: 
+		  "logo search menu"
+		  "nav nav nav"
+		  "account account account";
+	  }
+  
+	  .nav-area, .account-area {
+		display: none;
+	  }
+  
+	  .menu-button {
+		display: block;
+		grid-area: menu;
+		justify-self: end;
+	  }
+	}
+  </style>
