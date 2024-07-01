@@ -1,6 +1,6 @@
 <script lang="ts">
 	import * as ResizablePrimitive from "paneforge";
-	import { cn } from "$utils/utils.js";
+	import { cn } from "$utils/utils.ts";
 
 	type $$Props = ResizablePrimitive.PaneGroupProps;
 

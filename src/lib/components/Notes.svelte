@@ -1,166 +1,84 @@
-<script lang="ts">
-	import { onMount } from 'svelte';
+<script>
 	import { pb, currentUser } from '$utils/pocketbase';
-	import MarkdownEditor from './MarkdownEditor.svelte';
-	import TimestampList from './TimestampList.svelte';
-	import fuzzysort from 'fuzzysort';
+	import { onMount } from 'svelte';
+	import NoteList from './NoteList.svelte';
+	import { IconNote } from '@tabler/icons-svelte';
+	import MarkdownIt from 'markdown-it';
+  
+	let currentNote = null;
+	let content = '';
+	const md = new MarkdownIt();
 
-	let notes: any[] = [];
-	let currentNote: any = null;
-	let preparedTags: any[] = [];
-
-	onMount(async () => {
-		if ($currentUser) {
-			await fetchOrCreateDailyNote();
-			await fetchTags();
-		} else {
-			console.log('No user is currently logged in');
-		}
-	});
-
-	async function fetchOrCreateDailyNote() {
-  const today = new Date().toISOString().split('T')[0];
-  try {
-    const resultList = await pb.collection('objects').getList(1, 1, {
-      filter: `type = "note" && created = "${$currentUser.id}"`,
-      sort: '-created',
-      expand: 'properties(object_id),relationships(from_object_id)'
-    });
-
-    if (resultList.items.length > 0) {
-      currentNote = resultList.items[0];
-      // Check if the note is from today
-      const noteDate = new Date(currentNote.created).toISOString().split('T')[0];
-      if (noteDate !== today) {
-        // If not, create a new note for today
-        currentNote = await pb.collection('objects').create({
-          type: 'note',
-          created: $currentUser.id
-        });
-      }
+	onMount(() => {
+    if ($currentUser) {
+      console.log('User is authenticated:', $currentUser);
     } else {
-      currentNote = await pb.collection('objects').create({
-        type: 'note',
-        created: $currentUser.id
-      });
+      console.log('User is not authenticated');
+    }
+  })
+  
+	function handleNoteSelect(event) {
+	  currentNote = event.detail;
+	  content = currentNote ? currentNote.content : '';
+	}
+  
+	async function saveNote() {
+    if (!$currentUser) {
+      console.error('User not authenticated');
+      return;
     }
 
-    notes = [currentNote];
-    console.log('Current note:', currentNote);
-  } catch (error) {
-    console.error('Error fetching or creating daily note:', error);
+    try {
+      const data = {
+        content,
+        user_id: $currentUser.id,
+        date: new Date().toISOString().split('T')[0],
+      };
+
+      if (currentNote) {
+        await pb.collection('notes').update(currentNote.id, data);
+      } else {
+        await pb.collection('notes').create(data);
+      }
+      console.log('Note saved successfully');
+    } catch (error) {
+      console.error('Failed to save note', error);
+      if (error.data) {
+        console.error('Error data:', error.data);
+      }
+    }
   }
-}
-
-	async function handleNoteUpdate({ content, newTags }) {
-		try {
-			if (!currentNote) {
-				console.error('No current note selected');
-				return;
-			}
-
-			// Update or create content property
-			let contentProperty = currentNote.expand?.['properties(object_id)']?.find(
-				(prop) => prop.key === 'content'
-			);
-
-			if (contentProperty) {
-				await pb.collection('properties').update(contentProperty.id, {
-					value: JSON.stringify(content)
-				});
-			} else {
-				await pb.collection('properties').create({
-					object_id: currentNote.id,
-					key: 'content',
-					value: JSON.stringify(content)
-				});
-			}
-
-			// Handle new tags
-			if (Array.isArray(newTags)) {
-				for (const tagName of newTags) {
-					let tagObject = await pb
-						.collection('objects')
-						.getFirstListItem(`type="tag" && name="${tagName}"`)
-						.catch(() => null);
-
-					if (!tagObject) {
-						tagObject = await pb.collection('objects').create({
-							type: 'tag',
-							name: tagName
-						});
-					}
-
-					// Check if relationship already exists
-					const existingRelationship = await pb
-						.collection('relationships')
-						.getFirstListItem(
-							`from_object_id="${currentNote.id}" && to_object_id="${tagObject.id}" && type="tagged"`
-						)
-						.catch(() => null);
-
-					if (!existingRelationship) {
-						await pb.collection('relationships').create({
-							from_object_id: currentNote.id,
-							to_object_id: tagObject.id,
-							type: 'tagged'
-						});
-					}
-				}
-			}
-
-			await fetchOrCreateDailyNote();
-		} catch (error) {
-			console.error('Error updating note:', error);
-		}
-	}
-	$: console.log('Current user:', $currentUser);
-	$: console.log('Current notes:', notes);
-	$: console.log('CurrentNote:', currentNote);
-
-
-	async function fetchTags() {
-		try {
-			console.log('Fetching tags');
-			const resultList = await pb.collection('objects').getList(1, 50, {
-				filter: 'type = "tag"',
-				expand: 'properties(object_id)'
-			});
-			const tags = resultList.items;
-			console.log('Fetched tags:', tags);
-			preparedTags = tags.map((tag) => ({
-				original: tag,
-				prepared: fuzzysort.prepare(tag.name || '')
-			}));
-			console.log('Prepared tags:', preparedTags);
-		} catch (error) {
-			console.error('Error fetching tags:', error);
-		}
-	}
-
-	function handleNoteSelect(event) {
-		console.log('Note selected:', event.detail);
-		currentNote = event.detail;
-	}
-</script>
-
-<div class="flex h-screen w-screen text-black">
-	<!-- Main content -->
-	<div class="flex w-full">
-		<!-- Timestamp list -->
-		<div class="w-48 border-r border-gray-200">
-			<TimestampList note={currentNote} />
+  </script>
+  
+  <main class="flex h-screen bg-gray-100 text-gray-800">
+	<aside class="w-1/4 bg-white p-4 overflow-y-auto border-r border-gray-200">
+	  <NoteList on:noteSelect={handleNoteSelect} />
+	</aside>
+	<section class="w-3/4 p-4 flex flex-col">
+	  <div class="flex items-center mb-4">
+		<IconNote class="mr-2" />
+		<h1 class="text-2xl font-bold">Notes</h1>
+	  </div>
+	  <div class="flex-grow flex">
+		<div class="w-1/2 pr-2">
+		  <textarea
+			bind:value={content}
+			on:input={saveNote}
+			class="w-full h-full p-2 bg-white border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+			placeholder="Write your markdown here..."
+		  ></textarea>
 		</div>
-
-		<!-- Markdown editor -->
-		<div class="flex w-full">
-			<MarkdownEditor
-				note={currentNote}
-				{preparedTags}
-				{notes}
-				on:update={handleNoteUpdate}
-				on:select={handleNoteSelect}
-			/>
+		<div class="w-1/2 pl-2">
+		  <div class="w-full h-full p-2 bg-white border border-gray-300 rounded overflow-y-auto">
+			{@html md.render(content)}
+		  </div>
 		</div>
-	</div>
-</div>
+	  </div>
+	</section>
+  </main>
+  
+  <style>
+	:global(body) {
+	  @apply bg-gray-100 text-gray-800;
+	}
+  </style>
