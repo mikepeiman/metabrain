@@ -42,6 +42,7 @@
 		"cmdk-sv": "^0.0.17",
 		"date-fns": "^3.6.0",
 		"lucide-svelte": "^0.383.0",
+		"markdown-it": "^14.1.0",
 		"paneforge": "^0.0.4",
 		"pocketbase": "^0.21.3",
 		"svelte-radix": "^1.1.0",
