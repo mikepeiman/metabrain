@@ -2,6 +2,7 @@
 node_modules
 pb_migrations
 pb_data
+*.db
 /build
 /.svelte-kit
 /package
