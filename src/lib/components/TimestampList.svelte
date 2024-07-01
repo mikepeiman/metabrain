@@ -1,7 +1,7 @@
 <script lang="ts">
     export let note: any;
   
-    $: timestamps = note
+    $: timestamps = note && note.expand?.['properties(object_id)']
       ? note.expand['properties(object_id)']
           .find((prop) => prop.key === 'content')
           ?.value.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/g) || []

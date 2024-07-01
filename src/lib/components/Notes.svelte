@@ -3,213 +3,164 @@
 	import { pb, currentUser } from '$utils/pocketbase';
 	import MarkdownEditor from './MarkdownEditor.svelte';
 	import TimestampList from './TimestampList.svelte';
-	import NotesList from './NotesList.svelte';
-	import TagManager from './TagManager.svelte';
-	import { IconAi } from '@tabler/icons-svelte';
-	import { fuzzySearch } from '$lib/utils/fuzzySearch'; // Implement this utility function
 	import fuzzysort from 'fuzzysort';
-	$: console.log('Current user:', $currentUser);
-	$: console.log('Current notes:', notes);
+
 	let notes: any[] = [];
 	let currentNote: any = null;
-	let tags: any[] = [];
-
 	let preparedTags: any[] = [];
 
 	onMount(async () => {
 		if ($currentUser) {
-			await fetchNotes();
+			await fetchOrCreateDailyNote();
 			await fetchTags();
-			preparedTags = tags.map((tag) => ({
-				original: tag,
-				prepared: fuzzysort.prepare(
-					tag.expand['properties(object_id)'].find((p) => p.key === 'name')?.value
-				)
-			}));
 		} else {
 			console.log('No user is currently logged in');
 		}
 	});
 
-	async function handleNoteUpdate(updatedContent: string, newTags: string[] = []) {
-		try {
-			if (!currentNote) return;
+	async function fetchOrCreateDailyNote() {
+  const today = new Date().toISOString().split('T')[0];
+  try {
+    const resultList = await pb.collection('objects').getList(1, 1, {
+      filter: `type = "note" && created = "${$currentUser.id}"`,
+      sort: '-created',
+      expand: 'properties(object_id),relationships(from_object_id)'
+    });
 
-			// Update content
-			const contentProperty = currentNote.expand?.['properties(object_id)']?.find(
+    if (resultList.items.length > 0) {
+      currentNote = resultList.items[0];
+      // Check if the note is from today
+      const noteDate = new Date(currentNote.created).toISOString().split('T')[0];
+      if (noteDate !== today) {
+        // If not, create a new note for today
+        currentNote = await pb.collection('objects').create({
+          type: 'note',
+          created: $currentUser.id
+        });
+      }
+    } else {
+      currentNote = await pb.collection('objects').create({
+        type: 'note',
+        created: $currentUser.id
+      });
+    }
+
+    notes = [currentNote];
+    console.log('Current note:', currentNote);
+  } catch (error) {
+    console.error('Error fetching or creating daily note:', error);
+  }
+}
+
+	async function handleNoteUpdate({ content, newTags }) {
+		try {
+			if (!currentNote) {
+				console.error('No current note selected');
+				return;
+			}
+
+			// Update or create content property
+			let contentProperty = currentNote.expand?.['properties(object_id)']?.find(
 				(prop) => prop.key === 'content'
 			);
 
 			if (contentProperty) {
 				await pb.collection('properties').update(contentProperty.id, {
-					value: JSON.stringify(updatedContent)
+					value: JSON.stringify(content)
 				});
 			} else {
 				await pb.collection('properties').create({
 					object_id: currentNote.id,
 					key: 'content',
-					value: JSON.stringify(updatedContent)
+					value: JSON.stringify(content)
 				});
 			}
 
-			// Create new tags and tag the note
-			for (const tagName of newTags) {
-				let tag = tags.find((t) =>
-					t.expand['properties(object_id)'].find(
-						(p) => p.key === 'name' && JSON.parse(p.value) === tagName
-					)
-				);
+			// Handle new tags
+			if (Array.isArray(newTags)) {
+				for (const tagName of newTags) {
+					let tagObject = await pb
+						.collection('objects')
+						.getFirstListItem(`type="tag" && name="${tagName}"`)
+						.catch(() => null);
 
-				if (!tag) {
-					tag = await createTag(tagName);
+					if (!tagObject) {
+						tagObject = await pb.collection('objects').create({
+							type: 'tag',
+							name: tagName
+						});
+					}
+
+					// Check if relationship already exists
+					const existingRelationship = await pb
+						.collection('relationships')
+						.getFirstListItem(
+							`from_object_id="${currentNote.id}" && to_object_id="${tagObject.id}" && type="tagged"`
+						)
+						.catch(() => null);
+
+					if (!existingRelationship) {
+						await pb.collection('relationships').create({
+							from_object_id: currentNote.id,
+							to_object_id: tagObject.id,
+							type: 'tagged'
+						});
+					}
 				}
-
-				await tagNote(tag.id);
 			}
 
-			await pb.collection('versions').create({
-				object_id: currentNote.id,
-				data: JSON.stringify({ content: updatedContent })
-			});
-
-			await fetchNotes();
+			await fetchOrCreateDailyNote();
 		} catch (error) {
 			console.error('Error updating note:', error);
 		}
 	}
+	$: console.log('Current user:', $currentUser);
+	$: console.log('Current notes:', notes);
+	$: console.log('CurrentNote:', currentNote);
 
-	async function createTag(tagName: string) {
-		const newTag = await pb.collection('objects').create({
-			type: 'tag'
-		});
-
-		await pb.collection('properties').create({
-			object_id: newTag.id,
-			key: 'name',
-			value: JSON.stringify(tagName)
-		});
-
-		await fetchTags();
-		return newTag;
-	}
-
-	async function tagNote(tagId: string) {
-		if (!currentNote) return;
-
-		const existingRelation = currentNote.expand?.['relationships(from_object_id)']?.find(
-			(rel) => rel.to_object_id === tagId && rel.type === 'tagged'
-		);
-
-		if (!existingRelation) {
-			await pb.collection('relationships').create({
-				from_object_id: currentNote.id,
-				to_object_id: tagId,
-				type: 'tagged'
-			});
-		}
-	}
-	async function fetchNotes() {
-		try {
-			if ($currentUser) {
-				const resultList = await pb.collection('objects').getList(1, 50, {
-					filter: `type = "note"`
-				});
-				// const resultList = await pb.collection('objects').getList(1, 50, {
-				// 	filter: `type = "note" && created = "${$currentUser.id}"`,
-				// 	sort: '-created',
-				// 	expand: 'properties(object_id),relationships(from_object_id)'
-				// });
-				notes = resultList.items;
-				if (notes.length > 0) {
-					currentNote = notes[0];
-				}
-			} else {
-				console.log('No user is currently logged in');
-			}
-		} catch (error) {
-			console.error('Error fetching notes:', error);
-			if (error.status === 400) {
-				console.log('Bad request. Please check the filter syntax.');
-			}
-		}
-	}
 
 	async function fetchTags() {
 		try {
+			console.log('Fetching tags');
 			const resultList = await pb.collection('objects').getList(1, 50, {
 				filter: 'type = "tag"',
 				expand: 'properties(object_id)'
 			});
-			tags = resultList.items;
+			const tags = resultList.items;
+			console.log('Fetched tags:', tags);
 			preparedTags = tags.map((tag) => ({
 				original: tag,
-				prepared: fuzzysort.prepare(
-					tag.expand['properties(object_id)'].find((p) => p.key === 'name')?.value || ''
-				)
+				prepared: fuzzysort.prepare(tag.name || '')
 			}));
+			console.log('Prepared tags:', preparedTags);
 		} catch (error) {
 			console.error('Error fetching tags:', error);
-			if (error.status === 400) {
-				console.log('Bad request. Please check the filter syntax.');
-			}
 		}
 	}
 
-	async function handleNoteSelect(note: any) {
-		currentNote = note;
-	}
-
-	async function handleTagCreate(tagName: string) {
-		try {
-			const newTag = await pb.collection('objects').create({
-				type: 'tag'
-			});
-
-			await pb.collection('properties').create({
-				object_id: newTag.id,
-				key: 'name',
-				value: JSON.stringify(tagName)
-			});
-
-			await fetchTags();
-		} catch (error) {
-			console.error('Error creating tag:', error);
-		}
-	}
-
-	async function handleTagNote(tagId: string) {
-		try {
-			await pb.collection('relationships').create({
-				from_object_id: currentNote.id,
-				to_object_id: tagId,
-				type: 'tagged'
-			});
-
-			await fetchNotes();
-		} catch (error) {
-			console.error('Error tagging note:', error);
-		}
+	function handleNoteSelect(event) {
+		console.log('Note selected:', event.detail);
+		currentNote = event.detail;
 	}
 </script>
 
-<div class="flex h-screen">
-	<!-- Sidebar -->
-	<div class="w-64 bg-gray-100 p-4">
-		<h2 class="mb-4 text-xl font-bold">Notes</h2>
-		<NotesList {notes} on:select={handleNoteSelect} />
-		<TagManager {tags} on:createTag={handleTagCreate} on:tagNote={handleTagNote} />
-	</div>
-
+<div class="flex h-screen w-screen text-black">
 	<!-- Main content -->
-	<div class="flex flex-1">
+	<div class="flex w-full">
 		<!-- Timestamp list -->
 		<div class="w-48 border-r border-gray-200">
 			<TimestampList note={currentNote} />
 		</div>
 
 		<!-- Markdown editor -->
-		<div class="flex-1">
-			<MarkdownEditor note={currentNote} {preparedTags} on:update={handleNoteUpdate} />
+		<div class="flex w-full">
+			<MarkdownEditor
+				note={currentNote}
+				{preparedTags}
+				{notes}
+				on:update={handleNoteUpdate}
+				on:select={handleNoteSelect}
+			/>
 		</div>
 	</div>
 </div>
