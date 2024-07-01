@@ -41,6 +41,7 @@
 		"clsx": "^2.1.1",
 		"cmdk-sv": "^0.0.17",
 		"date-fns": "^3.6.0",
+		"fuzzysort": "^3.0.2",
 		"lucide-svelte": "^0.383.0",
 		"markdown-it": "^14.1.0",
 		"paneforge": "^0.0.4",
