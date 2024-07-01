@@ -14,10 +14,13 @@
 	  if ($currentUser) {
 		await loadNotes();
 	  }
-	  // Load from localStorage
-	  const savedContent = localStorage.getItem('currentNoteContent');
-	  if (savedContent) {
-		content = savedContent;
+	  // Load last edited note from localStorage
+	  const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
+	  if (lastEditedNoteId) {
+		currentNote = notes.find(note => note.id === lastEditedNoteId);
+		if (currentNote) {
+		  content = currentNote.content;
+		}
 	  }
 	});
   
@@ -36,7 +39,7 @@
 	function selectNote(note) {
 	  currentNote = note;
 	  content = note.content;
-	  localStorage.setItem('currentNoteContent', content);
+	  localStorage.setItem('lastEditedNoteId', note.id);
 	}
   
 	async function createNewNote() {
@@ -60,14 +63,17 @@
   
 	  try {
 		await pb.collection('notes').update(currentNote.id, { content });
-		localStorage.setItem('currentNoteContent', content);
+		currentNote.content = content; // Update the local note object
+		localStorage.setItem('lastEditedNoteId', currentNote.id);
 	  } catch (error) {
 		console.error('Failed to save note', error);
 	  }
 	}
   
 	function handleInput() {
-	  localStorage.setItem('currentNoteContent', content);
+	  if (currentNote) {
+		currentNote.content = content;
+	  }
 	}
   </script>
   
@@ -87,7 +93,7 @@
 				class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id ? 'bg-blue-100' : ''}"
 				on:click={() => selectNote(note)}
 			  >
-				{note.date}
+				{note.updated} - {note.content.slice(0, 30)}...
 			  </li>
 			{/each}
 		  </ul>
@@ -99,7 +105,7 @@
 		  <div class="flex items-center mb-4">
 			<IconNote class="mr-2" />
 			<h1 class="text-2xl font-bold">
-			  {currentNote ? `Note from ${currentNote.date}` : 'New Note'}
+			  {currentNote ? `Note from ${currentNote.date}` : 'No note selected'}
 			</h1>
 		  </div>
 		  <div class="flex-grow flex">
@@ -110,6 +116,7 @@
 				on:blur={saveNote}
 				class="w-full h-full p-2 bg-white border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
 				placeholder="Write your markdown here..."
+				disabled={!currentNote}
 			  ></textarea>
 			</div>
 			<div class="w-1/2 pl-2">
