@@ -1,47 +1,63 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { pb, currentUser } from '$utils/pocketbase';
-	import * as Resizable from "$lib/components/ui/resizable";
-	import * as Select from "$lib/components/ui/select";
-	import { Button } from "$lib/components/ui/button";
-	import { IconNote, IconPlus } from '@tabler/icons-svelte';
-	import MarkdownIt from 'markdown-it';
-	import { format, parseISO } from 'date-fns';
-  
-	let notes = [];
-	let currentNote = null;
-	let content = '';
-	let title = '';
-	let sortBy = 'updated';
-	const md = new MarkdownIt();
-  
-	onMount(async () => {
-	  if ($currentUser) {
-	  console.log(`🚀 ~ onMount ~ $currentUser:`, $currentUser)
-		await loadNotes();
-	  }
-	  const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
-	  if (lastEditedNoteId) {
-		currentNote = notes.find(note => note.id === lastEditedNoteId);
-		if (currentNote) {
-		  content = currentNote.content;
-		  title = currentNote.title;
-		}
-	  }
-	});
-  
-	async function loadNotes() {
-	  try {
-		const resultList = await pb.collection('notes').getList(1, 50, {
-		  filter: `user_id = "${$currentUser.id}"`,
-		  sort: `-${sortBy}`,
-		});
-		notes = resultList.items;
-	  } catch (error) {
-		console.error('Failed to load notes', error);
-	  }
-	}
-  
+  import { onMount } from 'svelte';
+  import { pb, currentUser } from '$utils/pocketbase';
+  import * as Resizable from "$lib/components/ui/resizable";
+  import * as Select from "$lib/components/ui/select";
+  import { Button } from "$lib/components/ui/button";
+  import { IconNote, IconPlus, IconLoader2 } from '@tabler/icons-svelte';
+  import MarkdownIt from 'markdown-it';
+  import { format, parseISO } from 'date-fns';
+  import { goto } from '$app/navigation';
+
+  let notes = [];
+  let currentNote = null;
+  let content = '';
+  let title = '';
+  let sortBy = 'updated';
+  let isLoading = false;
+  let error = null;
+  const md = new MarkdownIt();
+
+  onMount(async () => {
+    if ($currentUser) {
+      await loadNotes();
+    } else {
+      goto('/login'); // Redirect to login if not authenticated
+    }
+    const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
+    if (lastEditedNoteId) {
+      currentNote = notes.find(note => note.id === lastEditedNoteId);
+      if (currentNote) {
+        content = currentNote.content;
+        title = currentNote.title;
+      }
+    }
+  });
+
+  async function loadNotes() {
+    isLoading = true;
+    error = null;
+    try {
+      if (!$currentUser) {
+        throw new Error('User not authenticated');
+      }
+      const resultList = await pb.collection('notes').getList(1, 50, {
+        filter: `user_id = "${$currentUser.id}"`,
+        sort: `-${sortBy}`,
+      });
+      notes = resultList.items;
+    } catch (err) {
+      console.error('Failed to load notes', err);
+      if (err.status === 401) {
+        error = 'Authentication error. Please log in again.';
+        goto('/login');
+      } else {
+        error = `Failed to load notes: ${err.message}`;
+      }
+    } finally {
+      isLoading = false;
+    }
+  }
 	function selectNote(note) {
 	  currentNote = note;
 	  content = note.content;
@@ -90,13 +106,20 @@
 	  return format(parseISO(dateString), 'yyyy-MM-dd');
 	}
   
-	$: {
-	  if (sortBy) {
-		loadNotes();
-	  }
-	}
+	// $: {
+	//   if (sortBy) {
+	// 	loadNotes();
+	//   }
+	// }
+
+	function handleSortChange(event) {
+    console.log(`🚀 ~ handleSortChange ~ event:`, event)
+    sortBy = event.value;
+    loadNotes();
+  }
   </script>
   
+
   <main class="h-screen bg-gray-100 text-gray-800">
 	<Resizable.PaneGroup direction="horizontal" class="h-full">
 	  <Resizable.Pane defaultSize={25} minSize={15} maxSize={40}>
@@ -109,31 +132,41 @@
 			</Button>
 		  </div>
 		  <div class="mb-4">
-			<Select.Root bind:value={sortBy}>
-			  <Select.Trigger class="w-full">
-				<Select.Value placeholder="Sort by..." />
-			  </Select.Trigger>
-			  <Select.Content>
-				<Select.Item value="created">Created Date</Select.Item>
-				<Select.Item value="updated">Updated Date</Select.Item>
-				<Select.Item value="title">Title</Select.Item>
-			  </Select.Content>
-			</Select.Root>
+			<Select.Root onSelectedChange={handleSortChange}>
+				<Select.Trigger class="w-full">
+				  <Select.Value placeholder="Sort by..." />
+				</Select.Trigger>
+				<Select.Content>
+				  <Select.Item value="created">Created Date</Select.Item>
+				  <Select.Item value="updated">Updated Date</Select.Item>
+				  <Select.Item value="title">Title</Select.Item>
+				</Select.Content>
+			  </Select.Root>
 		  </div>
-		  <ul>
-			{#each notes as note (note.id)}
-			  <li
-				class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id ? 'bg-blue-100' : ''}"
-				on:click={() => selectNote(note)}
-			  >
-				<div class="font-semibold">{note.title}</div>
-				<div class="text-sm text-gray-500">
-				  {note.updated ? 'Updated ' : 'Created '}
-				  {formatDate(note.updated || note.created)}
-				</div>
-			  </li>
-			{/each}
-		  </ul>
+		  {#if isLoading}
+			<div class="flex justify-center items-center h-32">
+			  <IconLoader2 class="animate-spin h-8 w-8" />
+			</div>
+		  {:else if error}
+			<div class="text-red-500">{error}</div>
+		  {:else if notes.length === 0}
+			<div class="text-gray-500">No notes found. Create a new one!</div>
+		  {:else}
+			<ul>
+			  {#each notes as note (note.id)}
+				<li
+				  class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id ? 'bg-blue-100' : ''}"
+				  on:click={() => selectNote(note)}
+				>
+				  <div class="font-semibold">{note.title}</div>
+				  <div class="text-sm text-gray-500">
+					{note.updated ? 'Updated ' : 'Created '}
+					{formatDate(note.updated || note.created)}
+				  </div>
+				</li>
+			  {/each}
+			</ul>
+		  {/if}
 		</div>
 	  </Resizable.Pane>
 	  <Resizable.Handle />
