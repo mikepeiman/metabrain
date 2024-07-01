@@ -37,7 +37,7 @@
 		"@tabler/icons-svelte": "^3.7.0",
 		"@tauri-apps/api": "^1.5.6",
 		"@tauri-apps/plugin-global-shortcut": "^2.0.0-beta.5",
-		"bits-ui": "^0.21.10",
+		"bits-ui": "^0.21.11",
 		"clsx": "^2.1.1",
 		"cmdk-sv": "^0.0.17",
 		"date-fns": "^3.6.0",

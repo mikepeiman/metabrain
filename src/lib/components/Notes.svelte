@@ -2,39 +2,39 @@
 	import { onMount } from 'svelte';
 	import { pb, currentUser } from '$utils/pocketbase';
 	import * as Resizable from "$lib/components/ui/resizable";
+	import * as Select from "$lib/components/ui/select";
+	import { Button } from "$lib/components/ui/button";
 	import { IconNote, IconPlus } from '@tabler/icons-svelte';
 	import MarkdownIt from 'markdown-it';
-    import { format, parseISO } from 'date-fns';
-
-	
+	import { format, parseISO } from 'date-fns';
+  
 	let notes = [];
 	let currentNote = null;
 	let content = '';
+	let title = '';
+	let sortBy = 'updated';
 	const md = new MarkdownIt();
   
 	onMount(async () => {
 	  if ($currentUser) {
+	  console.log(`🚀 ~ onMount ~ $currentUser:`, $currentUser)
 		await loadNotes();
 	  }
-	  // Load last edited note from localStorage
 	  const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
 	  if (lastEditedNoteId) {
 		currentNote = notes.find(note => note.id === lastEditedNoteId);
 		if (currentNote) {
 		  content = currentNote.content;
+		  title = currentNote.title;
 		}
 	  }
 	});
-
-	function formatDate(dateString: string): string {
-    return format(parseISO(dateString), 'yyyy-MM-dd');
-  }
   
 	async function loadNotes() {
 	  try {
 		const resultList = await pb.collection('notes').getList(1, 50, {
 		  filter: `user_id = "${$currentUser.id}"`,
-		  sort: '-created',
+		  sort: `-${sortBy}`,
 		});
 		notes = resultList.items;
 	  } catch (error) {
@@ -45,6 +45,7 @@
 	function selectNote(note) {
 	  currentNote = note;
 	  content = note.content;
+	  title = note.title;
 	  localStorage.setItem('lastEditedNoteId', note.id);
 	}
   
@@ -53,9 +54,9 @@
   
 	  try {
 		const newNote = await pb.collection('notes').create({
+		  title: 'New Note',
 		  content: '',
 		  user_id: $currentUser.id,
-		  date: new Date().toISOString().split('T')[0],
 		});
 		notes = [newNote, ...notes];
 		selectNote(newNote);
@@ -68,9 +69,11 @@
 	  if (!currentNote || !$currentUser) return;
   
 	  try {
-		await pb.collection('notes').update(currentNote.id, { content });
-		currentNote.content = content; // Update the local note object
+		await pb.collection('notes').update(currentNote.id, { title, content });
+		currentNote.title = title;
+		currentNote.content = content;
 		localStorage.setItem('lastEditedNoteId', currentNote.id);
+		await loadNotes(); // Reload notes to update the list
 	  } catch (error) {
 		console.error('Failed to save note', error);
 	  }
@@ -79,6 +82,17 @@
 	function handleInput() {
 	  if (currentNote) {
 		currentNote.content = content;
+		currentNote.title = title;
+	  }
+	}
+  
+	function formatDate(dateString: string): string {
+	  return format(parseISO(dateString), 'yyyy-MM-dd');
+	}
+  
+	$: {
+	  if (sortBy) {
+		loadNotes();
 	  }
 	}
   </script>
@@ -87,16 +101,36 @@
 	<Resizable.PaneGroup direction="horizontal" class="h-full">
 	  <Resizable.Pane defaultSize={25} minSize={15} maxSize={40}>
 		<div class="h-full p-4 bg-white overflow-y-auto">
-		  <!-- ... -->
+		  <div class="flex justify-between items-center mb-4">
+			<h2 class="text-xl font-bold">Notes</h2>
+			<Button on:click={createNewNote} variant="outline" size="sm">
+			  <IconPlus class="mr-2 h-4 w-4" />
+			  Create
+			</Button>
+		  </div>
+		  <div class="mb-4">
+			<Select.Root bind:value={sortBy}>
+			  <Select.Trigger class="w-full">
+				<Select.Value placeholder="Sort by..." />
+			  </Select.Trigger>
+			  <Select.Content>
+				<Select.Item value="created">Created Date</Select.Item>
+				<Select.Item value="updated">Updated Date</Select.Item>
+				<Select.Item value="title">Title</Select.Item>
+			  </Select.Content>
+			</Select.Root>
+		  </div>
 		  <ul>
 			{#each notes as note (note.id)}
 			  <li
 				class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id ? 'bg-blue-100' : ''}"
 				on:click={() => selectNote(note)}
 			  >
-				{note.updated ? 'Updated ' : 'Created '}
-				{formatDate(note.updated || note.created)} - 
-				{note.content.slice(0, 30)}...
+				<div class="font-semibold">{note.title}</div>
+				<div class="text-sm text-gray-500">
+				  {note.updated ? 'Updated ' : 'Created '}
+				  {formatDate(note.updated || note.created)}
+				</div>
 			  </li>
 			{/each}
 		  </ul>
@@ -107,9 +141,15 @@
 		<div class="h-full p-4 flex flex-col">
 		  <div class="flex items-center mb-4">
 			<IconNote class="mr-2" />
-			<h1 class="text-2xl font-bold">
-			  {currentNote ? `Note from ${currentNote.date}` : 'No note selected'}
-			</h1>
+			<input
+			  type="text"
+			  bind:value={title}
+			  on:input={handleInput}
+			  on:blur={saveNote}
+			  class="text-2xl font-bold bg-transparent border-none focus:outline-none w-full"
+			  placeholder="Note Title"
+			  disabled={!currentNote}
+			/>
 		  </div>
 		  <div class="flex-grow flex">
 			<div class="w-1/2 pr-2">
