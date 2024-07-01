@@ -137,11 +137,7 @@
 		}
 		return null;
 	}
-	// function handleSortChange(event) {
-	// 	console.log(`🚀 ~ handleSortChange ~ event:`, event);
-	// 	sortBy = event.value;
-	// 	loadNotes();
-	// }
+
 </script>
 
 <main class="h-screen bg-gray-100 text-gray-800">
