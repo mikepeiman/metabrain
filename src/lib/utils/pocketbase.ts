@@ -8,4 +8,5 @@ export const currentUser = writable(pb.authStore.model);
 pb.authStore.onChange((auth) => {
     console.log('AuthStore changed', auth);
     currentUser.set(pb.authStore.model);
+    console.log(`🚀 ~ pb.authStore.onChange ~ pb.authStore.model:`, pb.authStore.model)
 });

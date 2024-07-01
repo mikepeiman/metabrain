@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { pb } from '$utils/pocketbase';
-	import { currentUser } from '@/utils/pocketbase';
+	import { pb, currentUser} from '$utils/pocketbase';
 	import { goto } from '$app/navigation';
 	import { IconSearch, IconDashboard, IconCalendar, IconClock, IconSettings, IconLogout, IconLogin, IconUserPlus, IconMenu2 } from '@tabler/icons-svelte';
   
