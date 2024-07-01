@@ -1,84 +1,124 @@
-<script>
-	import { pb, currentUser } from '$utils/pocketbase';
+<script lang="ts">
 	import { onMount } from 'svelte';
-	import NoteList from './NoteList.svelte';
-	import { IconNote } from '@tabler/icons-svelte';
+	import { pb, currentUser } from '$utils/pocketbase';
+	import * as Resizable from "$lib/components/ui/resizable";
+	import { IconNote, IconPlus } from '@tabler/icons-svelte';
 	import MarkdownIt from 'markdown-it';
   
+	let notes = [];
 	let currentNote = null;
 	let content = '';
 	const md = new MarkdownIt();
-
-	onMount(() => {
-    if ($currentUser) {
-      console.log('User is authenticated:', $currentUser);
-    } else {
-      console.log('User is not authenticated');
-    }
-  })
   
-	function handleNoteSelect(event) {
-	  currentNote = event.detail;
-	  content = currentNote ? currentNote.content : '';
+	onMount(async () => {
+	  if ($currentUser) {
+		await loadNotes();
+	  }
+	  // Load from localStorage
+	  const savedContent = localStorage.getItem('currentNoteContent');
+	  if (savedContent) {
+		content = savedContent;
+	  }
+	});
+  
+	async function loadNotes() {
+	  try {
+		const resultList = await pb.collection('notes').getList(1, 50, {
+		  filter: `user_id = "${$currentUser.id}"`,
+		  sort: '-created',
+		});
+		notes = resultList.items;
+	  } catch (error) {
+		console.error('Failed to load notes', error);
+	  }
+	}
+  
+	function selectNote(note) {
+	  currentNote = note;
+	  content = note.content;
+	  localStorage.setItem('currentNoteContent', content);
+	}
+  
+	async function createNewNote() {
+	  if (!$currentUser) return;
+  
+	  try {
+		const newNote = await pb.collection('notes').create({
+		  content: '',
+		  user_id: $currentUser.id,
+		  date: new Date().toISOString().split('T')[0],
+		});
+		notes = [newNote, ...notes];
+		selectNote(newNote);
+	  } catch (error) {
+		console.error('Failed to create new note', error);
+	  }
 	}
   
 	async function saveNote() {
-    if (!$currentUser) {
-      console.error('User not authenticated');
-      return;
-    }
-
-    try {
-      const data = {
-        content,
-        user_id: $currentUser.id,
-        date: new Date().toISOString().split('T')[0],
-      };
-
-      if (currentNote) {
-        await pb.collection('notes').update(currentNote.id, data);
-      } else {
-        await pb.collection('notes').create(data);
-      }
-      console.log('Note saved successfully');
-    } catch (error) {
-      console.error('Failed to save note', error);
-      if (error.data) {
-        console.error('Error data:', error.data);
-      }
-    }
-  }
+	  if (!currentNote || !$currentUser) return;
+  
+	  try {
+		await pb.collection('notes').update(currentNote.id, { content });
+		localStorage.setItem('currentNoteContent', content);
+	  } catch (error) {
+		console.error('Failed to save note', error);
+	  }
+	}
+  
+	function handleInput() {
+	  localStorage.setItem('currentNoteContent', content);
+	}
   </script>
   
-  <main class="flex h-screen bg-gray-100 text-gray-800">
-	<aside class="w-1/4 bg-white p-4 overflow-y-auto border-r border-gray-200">
-	  <NoteList on:noteSelect={handleNoteSelect} />
-	</aside>
-	<section class="w-3/4 p-4 flex flex-col">
-	  <div class="flex items-center mb-4">
-		<IconNote class="mr-2" />
-		<h1 class="text-2xl font-bold">Notes</h1>
-	  </div>
-	  <div class="flex-grow flex">
-		<div class="w-1/2 pr-2">
-		  <textarea
-			bind:value={content}
-			on:input={saveNote}
-			class="w-full h-full p-2 bg-white border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-			placeholder="Write your markdown here..."
-		  ></textarea>
+  <main class="h-screen bg-gray-100 text-gray-800">
+	<Resizable.PaneGroup direction="horizontal" class="h-full">
+	  <Resizable.Pane defaultSize={25} minSize={15} maxSize={40}>
+		<div class="h-full p-4 bg-white overflow-y-auto">
+		  <div class="flex justify-between items-center mb-4">
+			<h2 class="text-xl font-bold">Notes</h2>
+			<button on:click={createNewNote} class="p-1 rounded hover:bg-gray-200">
+			  <IconPlus size={24} />
+			</button>
+		  </div>
+		  <ul>
+			{#each notes as note (note.id)}
+			  <li
+				class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id ? 'bg-blue-100' : ''}"
+				on:click={() => selectNote(note)}
+			  >
+				{note.date}
+			  </li>
+			{/each}
+		  </ul>
 		</div>
-		<div class="w-1/2 pl-2">
-		  <div class="w-full h-full p-2 bg-white border border-gray-300 rounded overflow-y-auto">
-			{@html md.render(content)}
+	  </Resizable.Pane>
+	  <Resizable.Handle />
+	  <Resizable.Pane defaultSize={75} minSize={60} maxSize={85}>
+		<div class="h-full p-4 flex flex-col">
+		  <div class="flex items-center mb-4">
+			<IconNote class="mr-2" />
+			<h1 class="text-2xl font-bold">
+			  {currentNote ? `Note from ${currentNote.date}` : 'New Note'}
+			</h1>
+		  </div>
+		  <div class="flex-grow flex">
+			<div class="w-1/2 pr-2">
+			  <textarea
+				bind:value={content}
+				on:input={handleInput}
+				on:blur={saveNote}
+				class="w-full h-full p-2 bg-white border border-gray-300 rounded resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+				placeholder="Write your markdown here..."
+			  ></textarea>
+			</div>
+			<div class="w-1/2 pl-2">
+			  <div class="w-full h-full p-2 bg-white border border-gray-300 rounded overflow-y-auto">
+				{@html md.render(content)}
+			  </div>
+			</div>
 		  </div>
 		</div>
-	  </div>
-	</section>
+	  </Resizable.Pane>
+	</Resizable.PaneGroup>
   </main>
-  
-  <style>
-	:global(body) {
-	  @apply bg-gray-100 text-gray-800;
-	}
-  </style>
