@@ -1,11 +1,11 @@
 <script lang="ts">
     import type { PageData } from './$types';
-    
     export let data: PageData;
 
     import { pb } from '$utils/pocketbase';
- 
     import { goto } from '$app/navigation';
+
+    import UserRegister from '$lib/components/UserRegister.svelte';
 
     let email = '';
     let password = '';
@@ -36,8 +36,8 @@
 </script>
 
 <h1>Register</h1>
-
-<form on:submit|preventDefault={handleRegister} class="max-w-md mx-auto mt-12 p-8 bg-white rounded-xl shadow-2xl space-y-6">
+<UserRegister user={data.user} />
+<!-- <form on:submit|preventDefault={handleRegister} class="max-w-md mx-auto mt-12 p-8 bg-white rounded-xl shadow-2xl space-y-6">
     <h2 class="text-3xl font-extrabold text-center text-gray-800 mb-8">Create Account</h2>
     
     <div class="relative">
@@ -98,4 +98,4 @@
         {errorMessage}
       </p>
     {/if}
-  </form>
+  </form> -->
