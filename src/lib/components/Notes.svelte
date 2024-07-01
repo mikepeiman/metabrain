@@ -4,7 +4,9 @@
 	import * as Resizable from "$lib/components/ui/resizable";
 	import { IconNote, IconPlus } from '@tabler/icons-svelte';
 	import MarkdownIt from 'markdown-it';
-  
+    import { format, parseISO } from 'date-fns';
+
+	
 	let notes = [];
 	let currentNote = null;
 	let content = '';
@@ -23,6 +25,10 @@
 		}
 	  }
 	});
+
+	function formatDate(dateString: string): string {
+    return format(parseISO(dateString), 'yyyy-MM-dd');
+  }
   
 	async function loadNotes() {
 	  try {
@@ -81,19 +87,16 @@
 	<Resizable.PaneGroup direction="horizontal" class="h-full">
 	  <Resizable.Pane defaultSize={25} minSize={15} maxSize={40}>
 		<div class="h-full p-4 bg-white overflow-y-auto">
-		  <div class="flex justify-between items-center mb-4">
-			<h2 class="text-xl font-bold">Notes</h2>
-			<button on:click={createNewNote} class="p-1 rounded hover:bg-gray-200">
-			  <IconPlus size={24} />
-			</button>
-		  </div>
+		  <!-- ... -->
 		  <ul>
 			{#each notes as note (note.id)}
 			  <li
 				class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id ? 'bg-blue-100' : ''}"
 				on:click={() => selectNote(note)}
 			  >
-				{note.updated} - {note.content.slice(0, 30)}...
+				{note.updated ? 'Updated ' : 'Created '}
+				{formatDate(note.updated || note.created)} - 
+				{note.content.slice(0, 30)}...
 			  </li>
 			{/each}
 		  </ul>
