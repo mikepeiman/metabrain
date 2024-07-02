@@ -12,11 +12,12 @@
 		IconChevronDown
 	} from '@tabler/icons-svelte';
 
-	import { Editor } from '@milkdown/core';
+	import { Editor, rootCtx, defaultValueCtx } from '@milkdown/core';
 	import { commonmark } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
 	import { nord } from '@milkdown/theme-nord';
 	import '@milkdown/theme-nord/style.css';
+	import { listener, listenerCtx } from '@milkdown/plugin-listener';
 
 	import { format, parseISO } from 'date-fns';
 	import { goto } from '$app/navigation';
@@ -30,13 +31,13 @@
 	let isLoading = false;
 	let error = null;
 
+	let editor: Editor;
 
 	onMount(async () => {
-		Editor.make().config(nord).use(commonmark).use(history).create();
 		if ($currentUser) {
 			await loadNotes();
 		} else {
-			goto('/login'); // Redirect to login if not authenticated
+			goto('/login');
 		}
 		const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
 		if (lastEditedNoteId) {
@@ -46,6 +47,21 @@
 				title = currentNote.title;
 			}
 		}
+
+		editor = await Editor.make()
+			.config((ctx) => {
+				ctx.set(rootCtx, document.getElementById('editor'));
+				ctx.set(defaultValueCtx, content);
+				ctx.get(listenerCtx).markdownUpdated((ctx, markdown, prevMarkdown) => {
+					content = markdown;
+					handleInput();
+				});
+			})
+			.use(nord)
+			.use(commonmark)
+			.use(history)
+			.use(listener)
+			.create();
 	});
 
 	async function loadNotes() {
@@ -90,6 +106,11 @@
 		content = note.content;
 		title = note.title;
 		localStorage.setItem('lastEditedNoteId', note.id);
+		if (editor) {
+			editor.action((ctx) => {
+				ctx.get(commandsCtx).call(replaceAll.key, { content: note.content });
+			});
+		}
 	}
 
 	async function createNewNote() {
@@ -132,6 +153,7 @@
 		if (currentNote) {
 			currentNote.content = content;
 			currentNote.title = title;
+			saveNote();
 		}
 	}
 
@@ -218,25 +240,17 @@
 				<div class="mb-4 flex items-center">
 					<IconNote class="mr-2" />
 					<input
-						type="text"
-						bind:value={title}
-						on:input={handleInput}
-						on:blur={saveNote}
-						class="w-full border-none bg-transparent text-2xl font-bold focus:outline-none"
-						placeholder="Note Title"
-						disabled={!currentNote}
-					/>
+					type="text"
+					bind:value={title}
+					on:input={handleInput}
+					class="w-full border-none bg-transparent text-2xl font-bold focus:outline-none"
+					placeholder="Note Title"
+					disabled={!currentNote}
+				/>
 				</div>
 				<div class="flex flex-grow">
 					<div class="w-1/2 pr-2">
-						<textarea
-							bind:value={content}
-							on:input={handleInput}
-							on:blur={saveNote}
-							class="h-full w-full resize-none rounded border border-gray-300 bg-white p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-							placeholder="Write your markdown here..."
-							disabled={!currentNote}
-						></textarea>
+						<div id="editor" class="h-full w-full"></div>
 					</div>
 				</div>
 			</div>
