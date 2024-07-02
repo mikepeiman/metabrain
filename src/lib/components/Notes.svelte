@@ -88,16 +88,23 @@
 	async function createNewNote() {
 		if (!$currentUser) return;
 
+		console.log(`🚀 ~ createNewNote ~ currentUser:`, $currentUser)
 		try {
-			const newNote = await pb.collection('notes').create({
-				title: 'New Note',
-				content: '',
-				user_id: $currentUser.id
-			});
+			const data = {
+				"title": 'New Note',
+				"content": '',
+				"user_id": $currentUser.id
+			}
+			const newNote = await pb.collection('notes').create(data);
 			notes = [newNote, ...notes];
 			selectNote(newNote);
 		} catch (error) {
 			console.error('Failed to create new note', error);
+			if (error.data) {
+				console.log(`🚀 ~ createNewNote ~ error.data:`, error.data)
+				console.log(`🚀 ~ createNewNote ~ error.data.data.content:`, error.data?.data?.content)
+				
+			}
 		}
 	}
 
