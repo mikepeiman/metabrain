@@ -34,6 +34,7 @@
 	"type": "module",
 	"dependencies": {
 		"@internationalized/date": "^3.5.4",
+		"@milkdown/core": "^7.4.0",
 		"@tabler/icons-svelte": "^3.7.0",
 		"@tauri-apps/api": "^1.5.6",
 		"@tauri-apps/plugin-global-shortcut": "^2.0.0-beta.5",
@@ -45,7 +46,6 @@
 		"fuzzysort": "^3.0.2",
 		"lodash-es": "^4.17.21",
 		"lucide-svelte": "^0.383.0",
-		"markdown-it": "^14.1.0",
 		"paneforge": "^0.0.4",
 		"pocketbase": "^0.21.3",
 		"svelte-radix": "^1.1.0",
