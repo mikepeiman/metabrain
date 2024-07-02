@@ -2,15 +2,17 @@
 	import * as Resizable from '$lib/components/ui/resizable/index.js';
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import Notes from '$lib/components/Notes.svelte';
+	// import Notes from '$lib/components/Notes.svelte';
 	import PocketBase from 'pocketbase';
 	import { onMount } from 'svelte';
+	import MilkdownNotes from '@/components/MilkdownNotes.svelte';
 </script>
 
 <div class="flex w-screen flex-col">
-	<Notes />
-	<!-- <CommandPalette />
-       <Resizable.PaneGroup direction="horizontal" class="w-full h-screen rounded-lg border">
+	<!-- <Notes /> -->
+  <MilkdownNotes />
+ <CommandPalette />
+<!--  <Resizable.PaneGroup direction="horizontal" class="w-full h-screen rounded-lg border">
       <Resizable.Pane defaultSize={120}>
         <div class="flex h-[200px] items-center justify-center p-6 bg-slate-600">
           <Button href="/dashboard">Dashboard</Button>

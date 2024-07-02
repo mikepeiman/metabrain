@@ -11,7 +11,13 @@
 		IconChevronUp,
 		IconChevronDown
 	} from '@tabler/icons-svelte';
-	import MarkdownIt from 'markdown-it';
+
+	import { Editor } from '@milkdown/core';
+	import { commonmark } from '@milkdown/preset-commonmark';
+	import { history } from '@milkdown/plugin-history';
+	import { nord } from '@milkdown/theme-nord';
+	import '@milkdown/theme-nord/style.css';
+
 	import { format, parseISO } from 'date-fns';
 	import { goto } from '$app/navigation';
 
@@ -23,9 +29,10 @@
 	let sortDirection = 'desc';
 	let isLoading = false;
 	let error = null;
-	const md = new MarkdownIt();
+
 
 	onMount(async () => {
+		Editor.make().config(nord).use(commonmark).use(history).create();
 		if ($currentUser) {
 			await loadNotes();
 		} else {
@@ -88,22 +95,21 @@
 	async function createNewNote() {
 		if (!$currentUser) return;
 
-		console.log(`🚀 ~ createNewNote ~ currentUser:`, $currentUser)
+		console.log(`🚀 ~ createNewNote ~ currentUser:`, $currentUser);
 		try {
 			const data = {
-				"title": 'New Note',
-				"content": '',
-				"user_id": $currentUser.id
-			}
+				title: 'New Note',
+				content: '',
+				user_id: $currentUser.id
+			};
 			const newNote = await pb.collection('notes').create(data);
 			notes = [newNote, ...notes];
 			selectNote(newNote);
 		} catch (error) {
 			console.error('Failed to create new note', error);
 			if (error.data) {
-				console.log(`🚀 ~ createNewNote ~ error.data:`, error.data)
-				console.log(`🚀 ~ createNewNote ~ error.data.data.content:`, error.data?.data?.content)
-				
+				console.log(`🚀 ~ createNewNote ~ error.data:`, error.data);
+				console.log(`🚀 ~ createNewNote ~ error.data.data.content:`, error.data?.data?.content);
 			}
 		}
 	}
@@ -144,7 +150,6 @@
 		}
 		return null;
 	}
-
 </script>
 
 <main class="h-screen bg-gray-100 text-gray-800">
@@ -232,11 +237,6 @@
 							placeholder="Write your markdown here..."
 							disabled={!currentNote}
 						></textarea>
-					</div>
-					<div class="w-1/2 pl-2">
-						<div class="h-full w-full overflow-y-auto rounded border border-gray-300 bg-white p-2">
-							{@html md.render(content)}
-						</div>
 					</div>
 				</div>
 			</div>
