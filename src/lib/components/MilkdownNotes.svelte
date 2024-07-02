@@ -21,6 +21,7 @@
 
 	import { format, parseISO } from 'date-fns';
 	import { goto } from '$app/navigation';
+	import { debounce } from 'lodash-es';
 
 	let notes = [];
 	let currentNote = null;
@@ -102,6 +103,9 @@
 	}
 
 	function selectNote(note) {
+		if (currentNote) {
+			saveNoteImmediately();
+		}
 		currentNote = note;
 		content = note.content;
 		title = note.title;
@@ -135,25 +139,36 @@
 		}
 	}
 
-	async function saveNote() {
+	const saveNote = debounce(async () => {
 		if (!currentNote || !$currentUser) return;
 
 		try {
 			await pb.collection('notes').update(currentNote.id, { title, content });
-			currentNote.title = title;
-			currentNote.content = content;
 			localStorage.setItem('lastEditedNoteId', currentNote.id);
-			await loadNotes(); // Reload notes to update the list
+			// Consider if you really need to reload all notes here
+			// If not, you can remove this line to further reduce server calls
+			// await loadNotes();
 		} catch (error) {
 			console.error('Failed to save note', error);
 		}
-	}
+	}, 1000); // Adjust the delay (in milliseconds) as needed
 
 	function handleInput() {
 		if (currentNote) {
 			currentNote.content = content;
 			currentNote.title = title;
 			saveNote();
+		}
+	}
+
+	async function saveNoteImmediately() {
+		if (!currentNote || !$currentUser) return;
+
+		try {
+			await pb.collection('notes').update(currentNote.id, { title, content });
+			localStorage.setItem('lastEditedNoteId', currentNote.id);
+		} catch (error) {
+			console.error('Failed to save note', error);
 		}
 	}
 
@@ -240,13 +255,13 @@
 				<div class="mb-4 flex items-center">
 					<IconNote class="mr-2" />
 					<input
-					type="text"
-					bind:value={title}
-					on:input={handleInput}
-					class="w-full border-none bg-transparent text-2xl font-bold focus:outline-none"
-					placeholder="Note Title"
-					disabled={!currentNote}
-				/>
+						type="text"
+						bind:value={title}
+						on:input={handleInput}
+						class="w-full border-none bg-transparent text-2xl font-bold focus:outline-none"
+						placeholder="Note Title"
+						disabled={!currentNote}
+					/>
 				</div>
 				<div class="flex flex-grow">
 					<div class="w-1/2 pr-2">
