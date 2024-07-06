@@ -12,8 +12,8 @@
 		IconChevronDown
 	} from '@tabler/icons-svelte';
 
-	import { Editor, rootCtx, defaultValueCtx, commandsCtx, replaceAll } from '@milkdown/core';
-	// import { replaceAll } from '@milkdown/utils';
+	import { Editor, rootCtx, defaultValueCtx, commandsCtx } from '@milkdown/core';
+	import { replaceAll } from '@milkdown/utils';
 	import { commonmark } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
 	import { nord } from '@milkdown/theme-nord';

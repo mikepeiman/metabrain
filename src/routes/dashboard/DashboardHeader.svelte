@@ -1,23 +1,7 @@
 <script lang="ts">
 	import SideMenuLeft from './SideMenuLeft.svelte';
 
-	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
-	import ChevronRight from 'lucide-svelte/icons/chevron-right';
-	import Copy from 'lucide-svelte/icons/copy';
-	import CreditCard from 'lucide-svelte/icons/credit-card';
-	import File from 'lucide-svelte/icons/file';
-	import Home from 'lucide-svelte/icons/home';
-	import LineChart from 'lucide-svelte/icons/line-chart';
-	import ListFilter from 'lucide-svelte/icons/list-filter';
-	import EllipsisVertical from 'lucide-svelte/icons/ellipsis-vertical';
-	import Package from 'lucide-svelte/icons/package';
-	import Package2 from 'lucide-svelte/icons/package-2';
-	import PanelLeft from 'lucide-svelte/icons/panel-left';
-	import Search from 'lucide-svelte/icons/search';
-	import Settings from 'lucide-svelte/icons/settings';
-	import ShoppingCart from 'lucide-svelte/icons/shopping-cart';
-	import Truck from 'lucide-svelte/icons/truck';
-	import UsersRound from 'lucide-svelte/icons/users-round';
+	import { ChevronLeft, ChevronRight, Copy, CreditCard, File, Home, LineChart, ListFilter, EllipsisVertical, Package, Package2, PanelLeft, Search, Settings, ShoppingCart, Truck, UsersRound } from 'lucide-svelte';
 
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
