@@ -13,6 +13,7 @@
 	} from '@tabler/icons-svelte';
 
 	import { Editor, rootCtx, defaultValueCtx, commandsCtx } from '@milkdown/core';
+	import { replaceAll } from '@milkdown/utils';
 	import { commonmark } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
 	import { nord } from '@milkdown/theme-nord';
@@ -103,13 +104,18 @@
 	}
 
 	function selectNote(note) {
+		console.log(`🚀 ~ selectNote ~ note:`, note)
 		if (currentNote) {
 			saveNoteImmediately();
+		}
+		if (!note) {
+			console.error('Attempted to select undefined note');
+			return;
 		}
 		currentNote = note;
 		content = note.content;
 		title = note.title;
-		localStorage.setItem('lastEditedNoteId', note.id);
+		// localStorage.setItem('lastEditedNoteId', note.id);
 		if (editor) {
 			editor.action((ctx) => {
 				ctx.get(commandsCtx).call(replaceAll.key, { content: note.content });
