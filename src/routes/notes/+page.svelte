@@ -10,7 +10,7 @@
 
 <div class="flex w-screen flex-col">
 	<!-- <Notes /> -->
-
+  <MilkdownNotes />
  <CommandPalette />
 <!--  <Resizable.PaneGroup direction="horizontal" class="w-full h-screen rounded-lg border">
       <Resizable.Pane defaultSize={120}>

@@ -50,6 +50,9 @@ importers:
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
+      dexie:
+        specifier: ^4.0.7
+        version: 4.0.7
       flexsearch:
         specifier: ^0.7.43
         version: 0.7.43
@@ -65,12 +68,21 @@ importers:
       paneforge:
         specifier: ^0.0.4
         version: 0.0.4(svelte@4.2.18)
+      papaparse:
+        specifier: ^5.4.1
+        version: 5.4.1
       pocketbase:
         specifier: ^0.21.3
         version: 0.21.3
+      sentiment:
+        specifier: ^5.0.2
+        version: 5.0.2
       svelte-radix:
         specifier: ^1.1.0
         version: 1.1.0(svelte@4.2.18)
+      svelte-timeline:
+        specifier: ^0.1.2
+        version: 0.1.2
       tailwind-merge:
         specifier: ^2.3.0
         version: 2.3.0
@@ -817,6 +829,9 @@ packages:
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
 
+  dexie@4.0.7:
+    resolution: {integrity: sha512-M+Lo6rk4pekIfrc2T0o2tvVJwL6EAAM/B78DNfb8aaxFVoI1f8/rz5KTxuAnApkwqTSuxx7T5t0RKH7qprapGg==}
+
   didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
 
@@ -1201,6 +1216,9 @@ packages:
     peerDependencies:
       svelte: ^4.0.0
 
+  papaparse@5.4.1:
+    resolution: {integrity: sha512-HipMsgJkZu8br23pW15uvo6sib6wne/4woLZPlFf3rpDyMe9ywEXUsuD7+6K9PRkJlVT51j/sCOYDKGGS3ZJrw==}
+
   path-is-absolute@1.0.1:
     resolution: {integrity: sha512-AVbw3UJ2e9bq64vSaS9Am0fje1Pa8pbGqTTsmXfaIiMpnr5DlDhfJOuLj9Sf95ZPVDAUerDfEk88MPmPe7UCQg==}
     engines: {node: '>=0.10.0'}
@@ -1440,6 +1458,10 @@ packages:
   sander@0.5.1:
     resolution: {integrity: sha512-3lVqBir7WuKDHGrKRDn/1Ye3kwpXaDOMsiRP1wd6wpZW56gJhsbp5RqQpA6JG/P+pkXizygnr1dKR8vzWaVsfA==}
 
+  sentiment@5.0.2:
+    resolution: {integrity: sha512-ZeC3y0JsOYTdwujt5uOd7ILJNilbgFzUtg/LEG4wUv43LayFNLZ28ec8+Su+h3saHlJmIwYxBzfDHHZuiMA15g==}
+    engines: {node: '>=8.0'}
+
   set-cookie-parser@2.6.0:
     resolution: {integrity: sha512-RVnVQxTXuerk653XfuliOxBP81Sf0+qfQE73LIYKcyMYHG94AuH0kgrQpRDuTZnSmjpysHmzxJXKNfa6PjFhyQ==}
 
@@ -1549,6 +1571,9 @@ packages:
     resolution: {integrity: sha512-kyE9wZiJV937INGb+wiBkAjmGtQUUYRPkVL2Q+/gj+9Vog1Ewd2wNvNmpNMUd+c+euxoc5u5YZMuCUgky9EUPw==}
     peerDependencies:
       svelte: ^3.54.0 || ^4.0.0 || ^5.0.0
+
+  svelte-timeline@0.1.2:
+    resolution: {integrity: sha512-W2r3SnXjT3sZCSiiodPoiGoqdIZk8IBiyL/y1bOWzWPPjZM+7ONi3HhbRgvh8qUD95RS7hy4XnOf8TddRc1TCw==}
 
   svelte@4.2.18:
     resolution: {integrity: sha512-d0FdzYIiAePqRJEb90WlJDkjUEx42xhivxN8muUBmfZnP+tzUgz12DJ2hRJi8sIHCME7jeK1PTMgKPSfTd8JrA==}
@@ -2323,6 +2348,8 @@ snapshots:
     dependencies:
       dequal: 2.0.3
 
+  dexie@4.0.7: {}
+
   didyoumean@1.2.2: {}
 
   dlv@1.1.3: {}
@@ -2768,6 +2795,8 @@ snapshots:
       nanoid: 5.0.7
       svelte: 4.2.18
 
+  papaparse@5.4.1: {}
+
   path-is-absolute@1.0.1: {}
 
   path-key@3.1.1: {}
@@ -3017,6 +3046,8 @@ snapshots:
       mkdirp: 0.5.6
       rimraf: 2.7.1
 
+  sentiment@5.0.2: {}
+
   set-cookie-parser@2.6.0: {}
 
   shebang-command@2.0.0:
@@ -3118,6 +3149,8 @@ snapshots:
   svelte-radix@1.1.0(svelte@4.2.18):
     dependencies:
       svelte: 4.2.18
+
+  svelte-timeline@0.1.2: {}
 
   svelte@4.2.18:
     dependencies:
