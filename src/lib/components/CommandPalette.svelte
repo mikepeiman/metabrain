@@ -12,33 +12,46 @@
 
 	let open = false;
 
+	function getInputElement(): HTMLInputElement | null {
+		return document.querySelector('[data-cmdk-input]');
+	}
+
 	onMount(() => {
-		function handleKeydown(e: KeyboardEvent) {
+		function handleGlobalKeydown(e: KeyboardEvent) {
 			if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
 				e.preventDefault();
 				open = !open;
+				if (open) {
+					setTimeout(() => {
+						getInputElement()?.focus();
+					}, 0);
+				}
 			}
 		}
 
-		document.addEventListener('keydown', handleKeydown);
+		document.addEventListener('keydown', handleGlobalKeydown);
 
 		return () => {
-			document.removeEventListener('keydown', handleKeydown);
+			document.removeEventListener('keydown', handleGlobalKeydown);
 		};
 	});
 
 	function handleSelect(path: string) {
-		goto(path);
-		open = false;
+		goto(path).then(() => {
+			if (open) {
+				setTimeout(() => {
+					getInputElement()?.focus();
+				}, 0);
+			}
+		});
 	}
 
-  function handleKeydown(event: KeyboardEvent, path: string) {
-    console.log(`🚀 ~ handleKeydown ~ event:`, event)
-    if (event.key === 'Enter' || event.key === 'Tab') {
-      event.preventDefault();
-      handleSelect(path);
-    }
-  }
+	function handleKeydown(event: KeyboardEvent, path: string) {
+		if (event.key === 'Enter' || event.key === 'Tab') {
+			event.preventDefault();
+			handleSelect(path);
+		}
+	}
 </script>
 
 <Command.Dialog bind:open class="max-w-[450px] rounded-lg border shadow-md">
@@ -46,44 +59,45 @@
 	<Command.List>
 		<Command.Empty>No results found.</Command.Empty>
 		<Command.Group heading="Navigation">
-
-      <Command.Item>
-        <button 
-          class="w-full text-start" 
-          on:click={() => handleSelect('/')}
-          on:keydown={(e) => handleKeydown(e, '/')}
-        >
-          Home
-        </button>
-      </Command.Item>
-      <Command.Item>
-        <button 
-          class="w-full text-start" 
-          on:click={() => handleSelect('/skype')}
-          on:keydown={(e) => handleKeydown(e, '/skype')}
-        >
-          Skype parsing
-        </button>
-      </Command.Item>
-      <Command.Item>
-        <button 
-          class="w-full text-start" 
-          on:click={() => handleSelect('/notes')}
-          on:keydown={(e) => handleKeydown(e, '/notes')}
-        >
-          Notes DB
-        </button>
-      </Command.Item>
-      <Command.Item>
-        <button 
-          class="w-full text-start" 
-          on:click={() => handleSelect('/dashboard')}
-          on:keydown={(e) => handleKeydown(e, '/dashboard')}
-        >
-          Dashboard
-        </button>
-      </Command.Item>
+			<Command.Item onSelect={() => handleSelect('/')}>
+				<button
+					class="w-full text-start focus:outline-none"
+					on:click={() => handleSelect('/')}
+					on:keydown={(e) => handleKeydown(e, '/')}
+				>
+					Home
+				</button>
+			</Command.Item>
+			<Command.Item onSelect={() => handleSelect('/skype')}>
+				<button
+					class="w-full text-start focus:outline-none"
+					on:click={() => handleSelect('/skype')}
+					on:keydown={(e) => handleKeydown(e, '/skype')}
+				>
+					Skype parsing
+				</button>
+			</Command.Item>
+			<Command.Item onSelect={() => handleSelect('/notes')}>
+				<button
+					class="w-full text-start focus:outline-none"
+					on:click={() => handleSelect('/notes')}
+					on:keydown={(e) => handleKeydown(e, '/notes')}
+				>
+					Notes DB
+				</button>
+			</Command.Item>
+			<Command.Item onSelect={() => handleSelect('/dashboard')}>
+				<button
+					class="w-full text-start focus:outline-none"
+					on:click={() => handleSelect('/dashboard')}
+					on:keydown={(e) => handleKeydown(e, '/dashboard')}
+				>
+					Dashboard
+				</button>
+			</Command.Item>
 		</Command.Group>
+		<!-- ... rest of the component remains the same ... -->
+
 		<Command.Group heading="Suggestions">
 			<Command.Item>
 				<Calendar class="mr-2 h-4 w-4" />
