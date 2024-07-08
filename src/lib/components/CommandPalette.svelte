@@ -16,19 +16,17 @@
 		return document.querySelector('[data-cmdk-input]');
 	}
 
+	function handleGlobalKeydown(e: KeyboardEvent) {
+		console.log(`🚀 ~ handleGlobalKeydown ~ e:`, e)
+		if ((e.key === 'k' || e.key === 'p') && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			// open = !open;
+			open = true
+		} else if (e.key === 'Escape' || e.key === 'Enter') {
+      open = false
+    }
+	}
 	onMount(() => {
-		function handleGlobalKeydown(e: KeyboardEvent) {
-			if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-				e.preventDefault();
-				open = !open;
-				if (open) {
-					setTimeout(() => {
-						getInputElement()?.focus();
-					}, 0);
-				}
-			}
-		}
-
 		document.addEventListener('keydown', handleGlobalKeydown);
 
 		return () => {
@@ -37,16 +35,13 @@
 	});
 
 	function handleSelect(path: string) {
-		goto(path).then(() => {
-			if (open) {
-				setTimeout(() => {
-					getInputElement()?.focus();
-				}, 0);
-			}
-		});
+		console.log(`🚀 ~ handleSelect ~ path:`, path)
+		goto(path);
+		open = false;
 	}
 
 	function handleKeydown(event: KeyboardEvent, path: string) {
+		console.log(`🚀 ~ handleKeydown ~ event:`, event)
 		if (event.key === 'Enter' || event.key === 'Tab') {
 			event.preventDefault();
 			handleSelect(path);
