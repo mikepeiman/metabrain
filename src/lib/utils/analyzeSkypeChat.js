@@ -50,7 +50,7 @@ export async function analyzeSkypeChat(chatData) {
         intervalSinceLast,
         duration,
         length,
-        content: m.content
+        content: cleanContent(m.content)
       };
     });
   
@@ -65,6 +65,36 @@ export async function analyzeSkypeChat(chatData) {
       },
       detailedMessages
     };
+  }
+
+  function cleanContent(content) {
+    if (!content) return '';
+    
+    // Define a mapping of HTML entities to their corresponding characters
+    const entityMap = {
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#039;': "'",
+      '&apos;': "'",
+      '&nbsp;': ' '
+    };
+  
+    // Remove HTML tags, but preserve line breaks
+    content = content.replace(/<br\s*\/?>/gi, '\n');
+    content = content.replace(/<[^>]*>/g, '');
+  
+    // Replace HTML entities
+    content = content.replace(/&[^;]+;/g, (entity) => {
+      return entityMap[entity] || entity;
+    });
+  
+    // Remove any remaining XML-like tags
+    content = content.replace(/<\/?[^>]+(>|$)/g, "");
+  
+    // Trim whitespace and return
+    return content.trim();
   }
   
   export function formatTime(seconds) {
