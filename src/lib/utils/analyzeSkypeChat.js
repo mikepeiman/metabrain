@@ -147,7 +147,25 @@ export async function analyzeSkypeChat(rawChatData) {
     // Trim whitespace and return
     return cleanedContent.trim();
   }
+  // In src/utils/analyzeSkypeChat.js
+
+export function formatTimeDifference(seconds) {
+    if (seconds === null || seconds === undefined) return 'N/A';
+    
+    const absSeconds = Math.abs(seconds);
+    const days = Math.floor(absSeconds / 86400);
+    const hours = Math.floor((absSeconds % 86400) / 3600);
+    const minutes = Math.floor((absSeconds % 3600) / 60);
+    const remainingSeconds = Math.floor(absSeconds % 60);
   
+    const parts = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (remainingSeconds > 0 || parts.length === 0) parts.push(`${remainingSeconds}s`);
+  
+    return (seconds < 0 ? '-' : '') + parts.join(' ');
+  }
   export function formatTimeInterval(seconds) {
     if (seconds === null || seconds === undefined) return 'N/A';
     const hours = Math.floor(seconds / 3600);
