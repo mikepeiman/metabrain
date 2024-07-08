@@ -70,7 +70,6 @@ export async function analyzeSkypeChat(chatData) {
   function cleanContent(content) {
     if (!content) return '';
     
-    // Define a mapping of HTML entities to their corresponding characters
     const entityMap = {
       '&amp;': '&',
       '&lt;': '<',
@@ -81,8 +80,10 @@ export async function analyzeSkypeChat(chatData) {
       '&nbsp;': ' '
     };
   
-    // Remove HTML tags, but preserve line breaks
-    content = content.replace(/<br\s*\/?>/gi, '\n');
+    // Convert <br> tags to a placeholder
+    content = content.replace(/<br\s*\/?>/gi, '[[LINEBREAK]]');
+    
+    // Remove HTML tags
     content = content.replace(/<[^>]*>/g, '');
   
     // Replace HTML entities
@@ -92,6 +93,9 @@ export async function analyzeSkypeChat(chatData) {
   
     // Remove any remaining XML-like tags
     content = content.replace(/<\/?[^>]+(>|$)/g, "");
+  
+    // Restore line breaks
+    content = content.replace(/\[\[LINEBREAK\]\]/g, '\n');
   
     // Trim whitespace and return
     return content.trim();

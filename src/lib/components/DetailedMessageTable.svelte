@@ -35,7 +35,7 @@
                 {message.length} chars
               {/if}
             </td>
-            <td class="border px-4 py-2">{message.content}</td>
+            <td class="border px-4 py-2 whitespace-pre-wrap">{message.content}</td>
           </tr>
         {/each}
       </tbody>
