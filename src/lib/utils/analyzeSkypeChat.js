@@ -1,5 +1,4 @@
-// src/lib/analyzeSkypeChat.js
-import sentiment from 'sentiment';
+// src/utils/analyzeSkypeChat.js
 
 export async function analyzeSkypeChat(chatData) {
     const conversations = chatData.conversations;
@@ -8,7 +7,6 @@ export async function analyzeSkypeChat(chatData) {
       return null;
     }
   
-    // For this analysis, we'll use the first conversation in the array
     const conversation = conversations[0];
     let messages = conversation.MessageList;
   
@@ -17,67 +15,65 @@ export async function analyzeSkypeChat(chatData) {
       return null;
     }
   
-    // Filter messages from 2024 onwards
     const startDate = new Date('2024-01-01T00:00:00Z');
     messages = messages.filter(m => new Date(m.originalarrivaltime) >= startDate);
   
-    const calls = messages.filter(m => m.messagetype === "Event/Call");
-    const textMessages = messages.filter(m => m.messagetype === "RichText" || m.messagetype === "RichText/UriObject");
-    
-    const messageIntervals = calculateIntervals(textMessages);
-    const callIntervals = calculateIntervals(calls);
-    const callDurations = calls.map(c => {
-      const durationMatch = c.content.match(/<duration>(\d+(\.\d+)?)<\/duration>/);
-      return durationMatch ? parseFloat(durationMatch[1]) : 0;
+    let lastCallTime = null;
+    let lastMessageTime = null;
+  
+    const detailedMessages = messages.map((m, index) => {
+      const currentTime = new Date(m.originalarrivaltime);
+      let intervalSinceLast = null;
+      let duration = null;
+      let length = null;
+  
+      if (m.messagetype === "Event/Call") {
+        if (lastCallTime) {
+          intervalSinceLast = (currentTime - lastCallTime) / 1000; // in seconds
+        }
+        lastCallTime = currentTime;
+        const durationMatch = m.content.match(/<duration>(\d+(\.\d+)?)<\/duration>/);
+        duration = durationMatch ? parseFloat(durationMatch[1]) : 0;
+      } else {
+        if (lastMessageTime) {
+          intervalSinceLast = (currentTime - lastMessageTime) / 1000; // in seconds
+        }
+        lastMessageTime = currentTime;
+        length = m.content ? m.content.length : 0;
+      }
+  
+      return {
+        id: m.id,
+        type: m.messagetype,
+        timestamp: currentTime,
+        from: m.from,
+        intervalSinceLast,
+        duration,
+        length,
+        content: m.content
+      };
     });
   
     return {
       conversationId: conversation.id,
       displayName: conversation.displayName,
-      messageIntervals: calculateStats(messageIntervals),
-      callIntervals: calculateStats(callIntervals),
-      callDurations: calculateStats(callDurations),
-      totalMessages: textMessages.length,
-      totalCalls: calls.length,
+      totalMessages: detailedMessages.filter(m => m.type !== "Event/Call").length,
+      totalCalls: detailedMessages.filter(m => m.type === "Event/Call").length,
       analyzedPeriod: {
         start: startDate.toISOString(),
         end: new Date().toISOString()
       },
-      timeline: messages.map(m => ({
-        date: new Date(m.originalarrivaltime),
-        content: m.messagetype === "Event/Call" ? "Call" : m.content,
-        type: m.messagetype,
-        from: m.from
-      }))
+      detailedMessages
     };
   }
-
-function calculateIntervals(events) {
-  return events
-    .slice(1)
-    .map((e, i) => {
-      const current = new Date(e.originalarrivaltime).getTime();
-      const previous = new Date(events[i].originalarrivaltime).getTime();
-      return (current - previous) / 1000; // Convert to seconds
-    });
-}
-
-function calculateStats(arr) {
-  if (arr.length === 0) return { average: 0, min: 0, max: 0, median: 0 };
-  return {
-    average: average(arr),
-    min: Math.min(...arr),
-    max: Math.max(...arr),
-    median: median(arr)
-  };
-}
-
-function average(arr) {
-  return arr.reduce((a, b) => a + b, 0) / arr.length;
-}
-
-function median(arr) {
-  const sorted = [...arr].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-}
+  
+  export function formatTime(seconds) {
+    if (seconds === null || seconds === undefined) return 'N/A';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return [hours, minutes, secs]
+      .map(v => v < 10 ? "0" + v : v)
+      .filter((v,i) => v !== "00" || i > 0)
+      .join(":");
+  }

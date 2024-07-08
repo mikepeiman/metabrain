@@ -3,12 +3,11 @@
     import { onMount } from 'svelte';
     import { importSkypeChat } from '$utils/importSkypeChat';
     import { analyzeSkypeChat } from '$utils/analyzeSkypeChat';
-    import DataTable from '$lib/components/DataTable.svelte';
-    import TimelineView from '$lib/components/TimelineView.svelte';
+    import DetailedMessageTable from '$lib/components/DetailedMessageTable.svelte';
   
     let fileInput;
     let analysisResult = null;
-    let error = null;  // Make sure this line is present
+    let error = null;
     let db;
   
     function formatDate(dateString) {
@@ -42,7 +41,7 @@
           await db.chatData.clear();
           await db.chatData.add({ data: jsonData });
           analysisResult = await analyzeSkypeChat(jsonData);
-          error = null; // Clear any previous errors
+          error = null;
         } catch (e) {
           console.error('Error during file import:', e);
           error = 'Failed to import or analyze the file. Please check the console for more details.';
@@ -74,7 +73,6 @@
         <p class="mb-2">Total Messages: {analysisResult.totalMessages}</p>
         <p class="mb-2">Total Calls: {analysisResult.totalCalls}</p>
       </div>
-      <DataTable data={analysisResult} />
-      <TimelineView data={analysisResult.timeline} />
+      <DetailedMessageTable messages={analysisResult.detailedMessages} />
     {/if}
   </main>
