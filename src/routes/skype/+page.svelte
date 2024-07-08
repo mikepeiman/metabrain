@@ -67,12 +67,12 @@
     {/if}
   
     {#if analysisResult}
-      <div class="bg-white shadow-md rounded p-6 mb-4">
-        <h2 class="text-2xl font-semibold mb-2">Analysis Results for conversation with {analysisResult.displayName}</h2>
-        <p class="mb-2">Analyzed Period: {formatDate(analysisResult.analyzedPeriod.start)} to {formatDate(analysisResult.analyzedPeriod.end)}</p>
-        <p class="mb-2">Total Messages: {analysisResult.totalMessages}</p>
-        <p class="mb-2">Total Calls: {analysisResult.totalCalls}</p>
-      </div>
-      <DetailedMessageTable messages={analysisResult.detailedMessages} />
-    {/if}
+    <div class="bg-white shadow-md rounded p-6 mb-4">
+      <h2 class="text-2xl font-semibold mb-2">Analysis Results for conversation with {analysisResult.conversationName}</h2>
+      <p class="mb-2">Analyzed Period: {formatDate(analysisResult.analysisPeriod.start)} to {formatDate(analysisResult.analysisPeriod.end)}</p>
+      <p class="mb-2">Total Messages: {analysisResult.totalTextMessages}</p>
+      <p class="mb-2">Total Calls: {analysisResult.totalCalls}</p>
+    </div>
+    <DetailedMessageTable groupedMessagesList={analysisResult.groupedMessagesList} />
+  {/if}
   </main>

@@ -1,76 +1,123 @@
 // src/utils/analyzeSkypeChat.js
 
-export async function analyzeSkypeChat(chatData) {
-    const conversations = chatData.conversations;
-    if (!conversations || !Array.isArray(conversations)) {
-      console.error('Unexpected data structure:', chatData);
+export async function analyzeSkypeChat(rawChatData) {
+    console.log('%c Starting Skype chat analysis...', 'color: #4CAF50; font-weight: bold;');
+  
+    const allConversations = rawChatData.conversations;
+    if (!allConversations || !Array.isArray(allConversations)) {
+      console.error('%c Error: Unexpected data structure', 'color: #FF5252; font-weight: bold;', rawChatData);
       return null;
     }
   
-    const conversation = conversations[0];
-    let messages = conversation.MessageList;
+    const targetConversation = allConversations[0];
+    let allMessages = targetConversation.MessageList;
   
-    if (!messages || !Array.isArray(messages)) {
-      console.error('No messages found in the conversation:', conversation);
+    if (!allMessages || !Array.isArray(allMessages)) {
+      console.error('%c Error: No messages found in the conversation', 'color: #FF5252; font-weight: bold;', targetConversation);
       return null;
     }
   
-    const startDate = new Date('2024-01-01T00:00:00Z');
-    messages = messages.filter(m => new Date(m.originalarrivaltime) >= startDate);
+    const analysisStartDate = new Date('2024-01-01T00:00:00Z');
+    const filteredMessages = allMessages
+      .filter(message => new Date(message.originalarrivaltime) >= analysisStartDate)
+      .slice(0, 12);  // Limit to first 12 messages
   
-    let lastCallTime = null;
-    let lastMessageTime = null;
+    console.log(`%c Analyzing ${filteredMessages.length} messages from ${analysisStartDate.toISOString()}`, 'color: #2196F3; font-weight: bold;');
   
-    const detailedMessages = messages.map((m, index) => {
-      const currentTime = new Date(m.originalarrivaltime);
-      let intervalSinceLast = null;
-      let duration = null;
-      let length = null;
+    const groupedMessagesList = [];
+    let currentGroup = null;
   
-      if (m.messagetype === "Event/Call") {
-        if (lastCallTime) {
-          intervalSinceLast = (currentTime - lastCallTime) / 1000; // in seconds
-        }
-        lastCallTime = currentTime;
-        const durationMatch = m.content.match(/<duration>(\d+(\.\d+)?)<\/duration>/);
-        duration = durationMatch ? parseFloat(durationMatch[1]) : 0;
-      } else {
-        if (lastMessageTime) {
-          intervalSinceLast = (currentTime - lastMessageTime) / 1000; // in seconds
-        }
-        lastMessageTime = currentTime;
-        length = m.content ? m.content.length : 0;
+    filteredMessages.forEach((currentMessage, index) => {
+      const currentTimestamp = new Date(currentMessage.originalarrivaltime);
+      const cleanedContent = cleanMessageContent(currentMessage.content);
+      
+      const processedMessage = {
+        messageId: currentMessage.id,
+        messageType: currentMessage.messagetype,
+        senderInfo: currentMessage.from,
+        messageContent: cleanedContent,
+        contentLength: cleanedContent.length,
+        exactTimestamp: currentTimestamp
+      };
+  
+      if (currentMessage.messagetype === "Event/Call") {
+        const callDurationMatch = currentMessage.content.match(/<duration>(\d+(\.\d+)?)<\/duration>/);
+        processedMessage.callDuration = callDurationMatch ? parseFloat(callDurationMatch[1]) : 0;
       }
   
-      return {
-        id: m.id,
-        type: m.messagetype,
-        timestamp: currentTime,
-        from: m.from,
-        intervalSinceLast,
-        duration,
-        length,
-        content: cleanContent(m.content)
-      };
+      const shouldStartNewGroup = !currentGroup || 
+                                  (currentTimestamp - currentGroup.groupTimestamp) >= 60000 || // More than 1 minute apart
+                                  currentGroup.messageType !== processedMessage.messageType ||
+                                  Math.abs(currentGroup.contentLength - processedMessage.contentLength) > 5; // Content length differs significantly
+  
+      if (shouldStartNewGroup) {
+        if (currentGroup) {
+          groupedMessagesList.push(currentGroup);
+        }
+        currentGroup = {
+          groupTimestamp: currentTimestamp,
+          timeSincePreviousGroup: currentGroup ? (currentTimestamp - currentGroup.groupTimestamp) / 1000 : null,
+          messageType: processedMessage.messageType,
+          contentLength: processedMessage.contentLength,
+          messagesInGroup: [processedMessage],
+          uniqueMessages: new Map([[processedMessage.messageContent, 1]])
+        };
+      } else {
+        if (currentGroup.uniqueMessages.has(processedMessage.messageContent)) {
+          currentGroup.uniqueMessages.set(
+            processedMessage.messageContent, 
+            currentGroup.uniqueMessages.get(processedMessage.messageContent) + 1
+          );
+        } else {
+          currentGroup.messagesInGroup.push(processedMessage);
+          currentGroup.uniqueMessages.set(processedMessage.messageContent, 1);
+        }
+      }
+  
+      console.log(`%c Processed message ${index + 1}:`, 'color: #FFC107; font-style: italic;', 
+                  `Time: ${processedMessage.exactTimestamp.toISOString()}, Type: ${processedMessage.messageType}, Length: ${processedMessage.contentLength}, Content: ${processedMessage.messageContent.slice(0, 50)}...`);
     });
   
-    return {
-      conversationId: conversation.id,
-      displayName: conversation.displayName,
-      totalMessages: detailedMessages.filter(m => m.type !== "Event/Call").length,
-      totalCalls: detailedMessages.filter(m => m.type === "Event/Call").length,
-      analyzedPeriod: {
-        start: startDate.toISOString(),
+    if (currentGroup) {
+      groupedMessagesList.push(currentGroup);
+    }
+  
+    const analysisResults = {
+      conversationId: targetConversation.id,
+      conversationName: targetConversation.displayName,
+      totalTextMessages: filteredMessages.filter(msg => msg.messagetype !== "Event/Call").length,
+      totalCalls: filteredMessages.filter(msg => msg.messagetype === "Event/Call").length,
+      analysisPeriod: {
+        start: analysisStartDate.toISOString(),
         end: new Date().toISOString()
       },
-      detailedMessages
+      groupedMessagesList
     };
+  
+    console.log('%c Grouped Messages:', 'color: #9C27B0; font-weight: bold;');
+    groupedMessagesList.forEach((group, index) => {
+      console.log(`%c Group ${index + 1}:`, 'color: #4CAF50; font-weight: bold;');
+      console.log('Timestamp:', group.groupTimestamp.toISOString());
+      console.log('Time since previous group:', group.timeSincePreviousGroup);
+      console.log('Message Type:', group.messageType);
+      console.log('Content Length:', group.contentLength);
+      console.log('Unique Messages:', group.uniqueMessages.size);
+      group.messagesInGroup.forEach(msg => {
+        const count = group.uniqueMessages.get(msg.messageContent);
+        console.log(`${msg.exactTimestamp.toISOString()} - ${msg.messageContent.slice(0, 50)}... (${count} occurrence${count > 1 ? 's' : ''})`);
+      });
+    });
+  
+    console.log('%c Skype chat analysis completed', 'color: #4CAF50; font-weight: bold;');
+    console.log('%c Analysis results:', 'color: #9C27B0; font-weight: bold;', analysisResults);
+  
+    return analysisResults;
   }
-
-  function cleanContent(content) {
-    if (!content) return '';
+  
+  function cleanMessageContent(rawContent) {
+    if (!rawContent) return '';
     
-    const entityMap = {
+    const htmlEntityMap = {
       '&amp;': '&',
       '&lt;': '<',
       '&gt;': '>',
@@ -81,32 +128,32 @@ export async function analyzeSkypeChat(chatData) {
     };
   
     // Convert <br> tags to a placeholder
-    content = content.replace(/<br\s*\/?>/gi, '[[LINEBREAK]]');
+    let cleanedContent = rawContent.replace(/<br\s*\/?>/gi, '[[LINEBREAK]]');
     
     // Remove HTML tags
-    content = content.replace(/<[^>]*>/g, '');
+    cleanedContent = cleanedContent.replace(/<[^>]*>/g, '');
   
     // Replace HTML entities
-    content = content.replace(/&[^;]+;/g, (entity) => {
-      return entityMap[entity] || entity;
+    cleanedContent = cleanedContent.replace(/&[^;]+;/g, (entity) => {
+      return htmlEntityMap[entity] || entity;
     });
   
     // Remove any remaining XML-like tags
-    content = content.replace(/<\/?[^>]+(>|$)/g, "");
+    cleanedContent = cleanedContent.replace(/<\/?[^>]+(>|$)/g, "");
   
     // Restore line breaks
-    content = content.replace(/\[\[LINEBREAK\]\]/g, '\n');
+    cleanedContent = cleanedContent.replace(/\[\[LINEBREAK\]\]/g, '\n');
   
     // Trim whitespace and return
-    return content.trim();
+    return cleanedContent.trim();
   }
   
-  export function formatTime(seconds) {
+  export function formatTimeInterval(seconds) {
     if (seconds === null || seconds === undefined) return 'N/A';
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-    return [hours, minutes, secs]
+    const remainingSeconds = Math.floor(seconds % 60);
+    return [hours, minutes, remainingSeconds]
       .map(v => v < 10 ? "0" + v : v)
       .filter((v,i) => v !== "00" || i > 0)
       .join(":");
