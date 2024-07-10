@@ -11,7 +11,7 @@
     let currentNote = null;
     let content = '';
     let title = '';
-    let isEditorReady = false;
+    let isUpdatingContent = false;
 
     onMount(async () => {
         if ($currentUser) {
@@ -20,26 +20,18 @@
             // Handle unauthenticated user
         }
 
-        await initEditor();
-    });
-
-    async function initEditor() {
-        if (editor) {
-            await editor.destroy();
-        }
         editor = await Editor.make()
             .config((ctx) => {
                 ctx.set(rootCtx, document.querySelector('#editor'));
-                ctx.set(defaultValueCtx, content);
+                ctx.set(defaultValueCtx, '');
                 ctx.get(listenerCtx)
                     .mounted(() => {
                         console.log('Editor is ready');
-                        isEditorReady = true;
                     })
                     .markdownUpdated((ctx, markdown, prevMarkdown) => {
-                        if (isEditorReady) {
+                        if (!isUpdatingContent) {
                             content = markdown;
-                            saveNote();
+                            debouncedSaveNote();
                         }
                     });
             })
@@ -47,6 +39,22 @@
             .use(commonmark)
             .use(listener)
             .create();
+
+        if (notes.length > 0) {
+            await selectNote(notes[0]);
+        }
+    });
+
+    async function loadNotes() {
+        try {
+            const resultList = await pb.collection('notes').getList(1, 50, {
+                filter: `user_id = "${$currentUser.id}"`,
+                sort: '-updated'
+            });
+            notes = resultList.items;
+        } catch (error) {
+            console.error('Failed to load notes', error);
+        }
     }
 
     async function selectNote(note) {
@@ -55,21 +63,34 @@
         }
         currentNote = note;
         title = note.title;
-        content = note.content;
-        isEditorReady = false; // Prevent saving during content update
+        isUpdatingContent = true;
         if (editor) {
             editor.action((ctx) => {
-                const view = ctx.get(editorViewCtx);
-                const { state } = view;
-                const tr = state.tr.replace(0, state.doc.content.size, state.schema.text(note.content));
-                view.dispatch(tr);
+                ctx.set(defaultValueCtx, note.content);
             });
         }
-        isEditorReady = true; // Re-enable saving after content update
+        content = note.content;
+        isUpdatingContent = false;
     }
 
+    async function createNewNote() {
+        try {
+            const newNote = await pb.collection('notes').create({
+                title: 'New Note',
+                content: '',
+                user_id: $currentUser.id
+            });
+            notes = [newNote, ...notes];
+            await selectNote(newNote);
+        } catch (error) {
+            console.error('Failed to create new note', error);
+        }
+    }
+
+    const debouncedSaveNote = debounce(saveNote, 1000);
+
     async function saveNote() {
-        if (!currentNote || !isEditorReady) return;
+        if (!currentNote || isUpdatingContent) return;
         try {
             await pb.collection('notes').update(currentNote.id, {
                 title,
@@ -82,42 +103,22 @@
     }
 
     function handleTitleChange() {
-        if (isEditorReady) {
-            saveNote();
+        if (!isUpdatingContent) {
+            debouncedSaveNote();
         }
     }
 
-    async function loadNotes() {
-        try {
-            const resultList = await pb.collection('notes').getList(1, 50, {
-                filter: `user_id = "${$currentUser.id}"`,
-                sort: '-updated'
-            });
-            notes = resultList.items;
-            if (notes.length > 0) {
-                selectNote(notes[0]);
-            }
-        } catch (error) {
-            console.error('Failed to load notes', error);
-        }
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
-
- 
-
-    async function createNewNote() {
-        try {
-            const newNote = await pb.collection('notes').create({
-                title: 'New Note',
-                content: '',
-                user_id: $currentUser.id
-            });
-            notes = [newNote, ...notes];
-            selectNote(newNote);
-        } catch (error) {
-            console.error('Failed to create new note', error);
-        }
-    }
-
 </script>
 
 <main class="flex h-screen bg-gray-100">
@@ -147,8 +148,8 @@
             bind:value={title} 
             on:input={handleTitleChange} 
             placeholder="Note Title"
-            class="text-black w-full mb-4 p-2 text-xl font-bold border-b-2 border-gray-300 focus:border-blue-500 outline-none"
+            class="w-full mb-4 p-2 text-xl font-bold border-b-2 border-gray-300 focus:border-blue-500 outline-none text-black"
         />
-        <div id="editor" class="text-black prose max-w-none"></div>
+        <div id="editor" class="prose max-w-none text-black"></div>
     </div>
 </main>
