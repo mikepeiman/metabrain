@@ -1,17 +1,18 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, afterUpdate } from 'svelte';
 	import { pb, currentUser } from '$utils/pocketbase';
 	import * as Resizable from '$lib/components/ui/resizable';
 	import * as Select from '$lib/components/ui/select';
 	import { Button } from '$lib/components/ui/button';
+	import { toast } from 'svelte-sonner';
 	import {
 		IconNote,
 		IconPlus,
 		IconLoader2,
 		IconChevronUp,
-		IconChevronDown
+		IconChevronDown,
+		IconTrash
 	} from '@tabler/icons-svelte';
-
 	import {
 		Editor,
 		rootCtx,
@@ -20,21 +21,16 @@
 		editorViewCtx,
 		parserCtx
 	} from '@milkdown/core';
-	import { replaceAll } from '@milkdown/utils';
 	import { commonmark } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
 	import { nord } from '@milkdown/theme-nord';
 	import '@milkdown/theme-nord/style.css';
 	import { listener, listenerCtx } from '@milkdown/plugin-listener';
-
 	import { format, parseISO } from 'date-fns';
 	import { goto } from '$app/navigation';
 	import { debounce } from 'lodash-es';
 
-	import { afterUpdate } from 'svelte';
-
-	let titleInput;
-
+	let titleInput: HTMLInputElement;
 	let notes = [];
 	let currentNote = null;
 	let content = '';
@@ -43,30 +39,27 @@
 	let sortDirection = 'desc';
 	let isLoading = false;
 	let error = null;
-
 	let editor: Editor;
 	let editorReady = false;
 
 	onMount(async () => {
-		if ($currentUser) {
-			await loadNotes();
-		} else {
-			goto('/login');
-		}
+		if (!$currentUser) return goto('/login');
+		await loadNotes();
+		initializeEditor();
+	});
 
+	async function initializeEditor() {
 		editor = await Editor.make()
 			.config((ctx) => {
 				ctx.set(rootCtx, document.getElementById('editor'));
-				ctx.set(defaultValueCtx, ''); // Start with an empty editor
+				ctx.set(defaultValueCtx, '');
 				ctx
 					.get(listenerCtx)
 					.mounted(() => {
 						editorReady = true;
-						if (currentNote) {
-							selectNote(currentNote); // Call selectNote to update editor content
-						}
+						if (currentNote) selectNote(currentNote);
 					})
-					.markdownUpdated((ctx, markdown, prevMarkdown) => {
+					.markdownUpdated((_, markdown) => {
 						content = markdown;
 						handleInput();
 					});
@@ -83,64 +76,49 @@
 			if (currentNote) {
 				content = currentNote.content;
 				title = currentNote.title;
-				if (editorReady) {
-					selectNote(currentNote);
-				}
+				if (editorReady) selectNote(currentNote);
 			}
 		}
-	});
+	}
 
 	async function loadNotes() {
 		isLoading = true;
 		error = null;
 		try {
-			if (!$currentUser) {
-				throw new Error('User not authenticated');
-			}
+			if (!$currentUser) throw new Error('User not authenticated');
 			const resultList = await pb.collection('notes').getList(1, 50, {
-				filter: `user_id = "${$currentUser.id}"`,
+				filter: `user_id = "${$currentUser.id}" && deleted = false`,
 				sort: `${sortDirection === 'desc' ? '-' : ''}${sortBy}`
 			});
 			notes = resultList.items;
 		} catch (err) {
 			console.error('Failed to load notes', err);
-			if (err.status === 401) {
-				error = 'Authentication error. Please log in again.';
-			} else {
-				error = `Failed to load notes: ${err.message}`;
-			}
+			error =
+				err.status === 401
+					? 'Authentication error. Please log in again.'
+					: `Failed to load notes: ${err.message}`;
 		} finally {
 			isLoading = false;
 		}
 	}
 
 	function handleSortChange(event) {
-		const newSortBy = event.value;
-		if (newSortBy === sortBy) {
-			// If clicking on the same field, toggle direction
+		if (event.value === sortBy) {
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 		} else {
-			// If changing field, default to descending
-			sortBy = newSortBy;
+			sortBy = event.value;
 			sortDirection = 'desc';
 		}
 		loadNotes();
 	}
 
 	function selectNote(note) {
-		console.log(`🚀 ~ selectNote ~ note:`, note);
-		if (currentNote) {
-			saveNoteImmediately();
-		}
-		if (!note) {
-			console.error('Attempted to select undefined note');
-			return;
-		}
+		if (!note) return console.error('Attempted to select undefined note');
+		if (currentNote) saveNoteImmediately();
 		currentNote = note;
 		title = note.title;
 		localStorage.setItem('lastEditedNoteId', note.id);
 
-		// Update editor content
 		if (editor) {
 			editor.action((ctx) => {
 				const view = ctx.get(editorViewCtx);
@@ -150,51 +128,36 @@
 				view.dispatch(view.state.tr.replaceWith(0, view.state.doc.content.size, doc));
 			});
 		}
-		if (titleInput) {
-			titleInput.focus()
-			titleInput.select();
-		}
 	}
 
 	async function createNewNote() {
 		if (!$currentUser) return;
-
-		console.log(`🚀 ~ createNewNote ~ currentUser:`, $currentUser);
 		try {
-			const data = {
+			const newNote = await pb.collection('notes').create({
 				title: 'New Note',
-				content: ' ', // Set content to a single space character
+				content: ' ',
 				user_id: $currentUser.id
-			};
-			const newNote = await pb.collection('notes').create(data);
+			});
 			notes = [newNote, ...notes];
-			selectNote(newNote);
+			await selectNote(newNote);
 		} catch (error) {
 			console.error('Failed to create new note', error);
-			if (error.data) {
-				console.log(`🚀 ~ createNewNote ~ error.data:`, error.data);
-				console.log(`🚀 ~ createNewNote ~ error.data.data.content:`, error.data?.data?.content);
-			}
 		}
 		if (titleInput) {
-			titleInput.focus()
+			titleInput.focus();
 			titleInput.select();
 		}
 	}
 
 	const saveNote = debounce(async () => {
 		if (!currentNote || !$currentUser) return;
-
 		try {
 			await pb.collection('notes').update(currentNote.id, { title, content });
 			localStorage.setItem('lastEditedNoteId', currentNote.id);
-			// Consider if you really need to reload all notes here
-			// If not, you can remove this line to further reduce server calls
-			// await loadNotes();
 		} catch (error) {
 			console.error('Failed to save note', error);
 		}
-	}, 1000); // Adjust the delay (in milliseconds) as needed
+	}, 1000);
 
 	function handleInput() {
 		if (currentNote) {
@@ -206,7 +169,6 @@
 
 	async function saveNoteImmediately() {
 		if (!currentNote || !$currentUser) return;
-
 		try {
 			await pb.collection('notes').update(currentNote.id, { title, content });
 			localStorage.setItem('lastEditedNoteId', currentNote.id);
@@ -215,20 +177,77 @@
 		}
 	}
 
+	async function deleteNote(noteId: string) {
+		try {
+			const note = await pb.collection('notes').getOne(noteId);
+
+			if (!note.content || note.content.trim() === '') {
+				// If no content, delete outright
+				await pb.collection('notes').delete(noteId);
+				toast.success('Note deleted successfully');
+			} else {
+				// If there's content, show confirmation dialog
+				const confirmDelete = confirm(
+					'Are you sure you want to delete this note? This action can be undone later.'
+				);
+
+				if (confirmDelete) {
+					// Update the note with deleted flag and timestamp
+					await pb.collection('notes').update(noteId, {
+						deleted: true,
+						deletedDate: new Date().toISOString()
+					});
+					toast.success('Note marked as deleted', {
+						description: 'You can restore it later from the archive.',
+						action: {
+							label: 'Undo',
+							onClick: () => restoreNote(noteId)
+						}
+					});
+				} else {
+					toast.info('Deletion cancelled');
+					return;
+				}
+			}
+
+			// Refresh the notes list
+			await loadNotes();
+
+			// Clear the current note if it was the one deleted
+			if (currentNote?.id === noteId) {
+				currentNote = null;
+				title = '';
+				// Clear the editor content (adjust this based on your editor implementation)
+				if (editor) {
+					editor.setContent('');
+				}
+			}
+		} catch (error) {
+			console.error('Error deleting note:', error);
+			toast.error('Failed to delete note');
+		}
+	}
+
+	async function restoreNote(noteId: string) {
+		try {
+			await pb.collection('notes').update(noteId, {
+				deleted: false,
+				deletedDate: null
+			});
+			toast.success('Note restored successfully');
+			await loadNotes();
+		} catch (error) {
+			console.error('Error restoring note:', error);
+			toast.error('Failed to restore note');
+		}
+	}
+
 	function formatDate(dateString: string): string {
 		return format(parseISO(dateString), 'yyyy-MM-dd');
 	}
 
-	// $: {
-	//   if (sortBy) {
-	// 	loadNotes();
-	//   }
-	// }
 	function getSortIcon(field) {
-		if (sortBy === field) {
-			return sortDirection === 'asc' ? IconChevronUp : IconChevronDown;
-		}
-		return null;
+		return sortBy === field ? (sortDirection === 'asc' ? IconChevronUp : IconChevronDown) : null;
 	}
 </script>
 
@@ -249,18 +268,12 @@
 							<Select.Value placeholder="Sort by..." />
 						</Select.Trigger>
 						<Select.Content>
-							<Select.Item value="created">
-								Created Date
-								<svelte:component this={getSortIcon('created')} class="ml-2 inline-block" />
-							</Select.Item>
-							<Select.Item value="updated">
-								Updated Date
-								<svelte:component this={getSortIcon('updated')} class="ml-2 inline-block" />
-							</Select.Item>
-							<Select.Item value="title">
-								Title
-								<svelte:component this={getSortIcon('title')} class="ml-2 inline-block" />
-							</Select.Item>
+							{#each ['created', 'updated', 'title'] as field}
+								<Select.Item value={field}>
+									{field.charAt(0).toUpperCase() + field.slice(1)}
+									<svelte:component this={getSortIcon(field)} class="ml-2 inline-block" />
+								</Select.Item>
+							{/each}
 						</Select.Content>
 					</Select.Root>
 				</div>
@@ -281,10 +294,24 @@
 									: ''}"
 								on:click={() => selectNote(note)}
 							>
-								<div class="font-semibold">{note.title}</div>
-								<div class="text-sm text-gray-500">
-									{note.updated ? 'Updated ' : 'Created '}
-									{formatDate(note.updated || note.created)}
+								<div class="flex items-center justify-between">
+									<div>
+										<div class="font-semibold">{note.title}</div>
+										<div class="text-sm text-gray-500">
+											{note.updated ? 'Updated ' : 'Created '}
+											{formatDate(note.updated || note.created)}
+										</div>
+									</div>
+									<Button
+										variant="ghost"
+										size="sm"
+										on:click={(event) => {
+											event.stopPropagation();
+											deleteNote(note.id);
+										}}
+									>
+										<IconTrash class="h-4 w-4" />
+									</Button>
 								</div>
 							</li>
 						{/each}
