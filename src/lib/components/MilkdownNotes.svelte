@@ -288,6 +288,8 @@
 				{:else}
 					<ul>
 						{#each notes as note (note.id)}
+							<!-- svelte-ignore a11y-click-events-have-key-events -->
+							<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 							<li
 								class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id
 									? 'bg-blue-100'
