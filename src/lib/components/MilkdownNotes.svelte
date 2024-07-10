@@ -12,7 +12,14 @@
 		IconChevronDown
 	} from '@tabler/icons-svelte';
 
-	import { Editor, rootCtx, defaultValueCtx, commandsCtx, editorViewCtx, parserCtx } from '@milkdown/core';
+	import {
+		Editor,
+		rootCtx,
+		defaultValueCtx,
+		commandsCtx,
+		editorViewCtx,
+		parserCtx
+	} from '@milkdown/core';
 	import { replaceAll } from '@milkdown/utils';
 	import { commonmark } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
@@ -23,6 +30,10 @@
 	import { format, parseISO } from 'date-fns';
 	import { goto } from '$app/navigation';
 	import { debounce } from 'lodash-es';
+
+	import { afterUpdate } from 'svelte';
+
+	let titleInput;
 
 	let notes = [];
 	let currentNote = null;
@@ -117,30 +128,34 @@
 	}
 
 	function selectNote(note) {
-    console.log(`🚀 ~ selectNote ~ note:`, note);
-    if (currentNote) {
-        saveNoteImmediately();
-    }
-    if (!note) {
-        console.error('Attempted to select undefined note');
-        return;
-    }
-    currentNote = note;
-    title = note.title;
-    localStorage.setItem('lastEditedNoteId', note.id);
-    
-    // Update editor content
-    if (editor) {
-        editor.action((ctx) => {
-            const view = ctx.get(editorViewCtx);
-            const noteContent = note.content.trim() !== '' ? note.content : ' ';
-            const parser = ctx.get(parserCtx);
-            const doc = parser(noteContent);
-            view.dispatch(view.state.tr.replaceWith(0, view.state.doc.content.size, doc));
-        });
-    }
-}
-	
+		console.log(`🚀 ~ selectNote ~ note:`, note);
+		if (currentNote) {
+			saveNoteImmediately();
+		}
+		if (!note) {
+			console.error('Attempted to select undefined note');
+			return;
+		}
+		currentNote = note;
+		title = note.title;
+		localStorage.setItem('lastEditedNoteId', note.id);
+
+		// Update editor content
+		if (editor) {
+			editor.action((ctx) => {
+				const view = ctx.get(editorViewCtx);
+				const noteContent = note.content.trim() !== '' ? note.content : ' ';
+				const parser = ctx.get(parserCtx);
+				const doc = parser(noteContent);
+				view.dispatch(view.state.tr.replaceWith(0, view.state.doc.content.size, doc));
+			});
+		}
+		if (titleInput) {
+			titleInput.focus()
+			titleInput.select();
+		}
+	}
+
 	async function createNewNote() {
 		if (!$currentUser) return;
 
@@ -160,6 +175,10 @@
 				console.log(`🚀 ~ createNewNote ~ error.data:`, error.data);
 				console.log(`🚀 ~ createNewNote ~ error.data.data.content:`, error.data?.data?.content);
 			}
+		}
+		if (titleInput) {
+			titleInput.focus()
+			titleInput.select();
 		}
 	}
 
@@ -281,6 +300,7 @@
 					<input
 						type="text"
 						bind:value={title}
+						bind:this={titleInput}
 						on:input={handleInput}
 						class="w-full border-none bg-transparent text-2xl font-bold focus:outline-none"
 						placeholder="Note Title"
