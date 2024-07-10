@@ -4,12 +4,14 @@
 	import * as Resizable from '$lib/components/ui/resizable';
 	import * as Select from '$lib/components/ui/select';
 	import { Button } from '$lib/components/ui/button';
+	import { toast } from 'svelte-sonner';
 	import {
 		IconNote,
 		IconPlus,
 		IconLoader2,
 		IconChevronUp,
-		IconChevronDown
+		IconChevronDown,
+		IconTrash
 	} from '@tabler/icons-svelte';
 	import {
 		Editor,
@@ -85,7 +87,7 @@
 		try {
 			if (!$currentUser) throw new Error('User not authenticated');
 			const resultList = await pb.collection('notes').getList(1, 50, {
-				filter: `user_id = "${$currentUser.id}"`,
+				filter: `user_id = "${$currentUser.id}" && deleted = false`,
 				sort: `${sortDirection === 'desc' ? '-' : ''}${sortBy}`
 			});
 			notes = resultList.items;
@@ -175,16 +177,14 @@
 		}
 	}
 
-	async function deleteNote(noteId) {
+	async function deleteNote(noteId: string) {
 		try {
-			// Fetch the note
 			const note = await pb.collection('notes').getOne(noteId);
 
-			// Check if the note has content
 			if (!note.content || note.content.trim() === '') {
 				// If no content, delete outright
 				await pb.collection('notes').delete(noteId);
-				console.log('Note deleted successfully');
+				toast.success('Note deleted successfully');
 			} else {
 				// If there's content, show confirmation dialog
 				const confirmDelete = confirm(
@@ -197,16 +197,48 @@
 						deleted: true,
 						deletedDate: new Date().toISOString()
 					});
-					console.log('Note marked as deleted');
+					toast.success('Note marked as deleted', {
+						description: 'You can restore it later from the archive.',
+						action: {
+							label: 'Undo',
+							onClick: () => restoreNote(noteId)
+						}
+					});
 				} else {
-					console.log('Deletion cancelled');
+					toast.info('Deletion cancelled');
+					return;
 				}
 			}
 
-			// Refresh the notes list or update UI as needed
-			refreshNotesList();
+			// Refresh the notes list
+			await loadNotes();
+
+			// Clear the current note if it was the one deleted
+			if (currentNote?.id === noteId) {
+				currentNote = null;
+				title = '';
+				// Clear the editor content (adjust this based on your editor implementation)
+				if (editor) {
+					editor.setContent('');
+				}
+			}
 		} catch (error) {
 			console.error('Error deleting note:', error);
+			toast.error('Failed to delete note');
+		}
+	}
+
+	async function restoreNote(noteId: string) {
+		try {
+			await pb.collection('notes').update(noteId, {
+				deleted: false,
+				deletedDate: null
+			});
+			toast.success('Note restored successfully');
+			await loadNotes();
+		} catch (error) {
+			console.error('Error restoring note:', error);
+			toast.error('Failed to restore note');
 		}
 	}
 
@@ -262,10 +294,24 @@
 									: ''}"
 								on:click={() => selectNote(note)}
 							>
-								<div class="font-semibold">{note.title}</div>
-								<div class="text-sm text-gray-500">
-									{note.updated ? 'Updated ' : 'Created '}
-									{formatDate(note.updated || note.created)}
+								<div class="flex items-center justify-between">
+									<div>
+										<div class="font-semibold">{note.title}</div>
+										<div class="text-sm text-gray-500">
+											{note.updated ? 'Updated ' : 'Created '}
+											{formatDate(note.updated || note.created)}
+										</div>
+									</div>
+									<Button
+										variant="ghost"
+										size="sm"
+										on:click={(event) => {
+											event.stopPropagation();
+											deleteNote(note.id);
+										}}
+									>
+										<IconTrash class="h-4 w-4" />
+									</Button>
 								</div>
 							</li>
 						{/each}
