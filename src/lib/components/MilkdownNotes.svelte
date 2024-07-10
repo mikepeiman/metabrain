@@ -24,8 +24,9 @@
 	import { goto } from '$app/navigation';
 	import { debounce } from 'lodash-es';
 
-	let notes = [];
+	let notes: any[] = [];
 	let currentNote = null;
+	$: console.log(`🚀 ~ currentNote:`, currentNote)
 	let content = '';
 	let title = '';
 	let sortBy = 'updated';
@@ -44,6 +45,7 @@
 		const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
 		if (lastEditedNoteId) {
 			currentNote = notes.find((note) => note.id === lastEditedNoteId);
+			console.log(`🚀 ~ onMount ~ currentNote:`, currentNote)
 			if (currentNote) {
 				content = currentNote.content;
 				title = currentNote.title;
@@ -56,6 +58,7 @@
 				ctx.set(defaultValueCtx, content);
 				ctx.get(listenerCtx).markdownUpdated((ctx, markdown, prevMarkdown) => {
 					content = markdown;
+					console.log(`🚀 ~ ctx.get ~ content:`, content)
 					handleInput();
 				});
 			})
