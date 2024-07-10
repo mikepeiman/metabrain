@@ -4,8 +4,21 @@
 	import * as Resizable from '$lib/components/ui/resizable';
 	import * as Select from '$lib/components/ui/select';
 	import { Button } from '$lib/components/ui/button';
-	import { IconNote, IconPlus, IconLoader2, IconChevronUp, IconChevronDown } from '@tabler/icons-svelte';
-	import { Editor, rootCtx, defaultValueCtx, commandsCtx, editorViewCtx, parserCtx } from '@milkdown/core';
+	import {
+		IconNote,
+		IconPlus,
+		IconLoader2,
+		IconChevronUp,
+		IconChevronDown
+	} from '@tabler/icons-svelte';
+	import {
+		Editor,
+		rootCtx,
+		defaultValueCtx,
+		commandsCtx,
+		editorViewCtx,
+		parserCtx
+	} from '@milkdown/core';
 	import { commonmark } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
 	import { nord } from '@milkdown/theme-nord';
@@ -38,7 +51,8 @@
 			.config((ctx) => {
 				ctx.set(rootCtx, document.getElementById('editor'));
 				ctx.set(defaultValueCtx, '');
-				ctx.get(listenerCtx)
+				ctx
+					.get(listenerCtx)
 					.mounted(() => {
 						editorReady = true;
 						if (currentNote) selectNote(currentNote);
@@ -77,7 +91,10 @@
 			notes = resultList.items;
 		} catch (err) {
 			console.error('Failed to load notes', err);
-			error = err.status === 401 ? 'Authentication error. Please log in again.' : `Failed to load notes: ${err.message}`;
+			error =
+				err.status === 401
+					? 'Authentication error. Please log in again.'
+					: `Failed to load notes: ${err.message}`;
 		} finally {
 			isLoading = false;
 		}
@@ -99,7 +116,7 @@
 		currentNote = note;
 		title = note.title;
 		localStorage.setItem('lastEditedNoteId', note.id);
-		
+
 		if (editor) {
 			editor.action((ctx) => {
 				const view = ctx.get(editorViewCtx);
@@ -109,10 +126,8 @@
 				view.dispatch(view.state.tr.replaceWith(0, view.state.doc.content.size, doc));
 			});
 		}
-
-		
 	}
-	
+
 	async function createNewNote() {
 		if (!$currentUser) return;
 		try {
@@ -127,7 +142,7 @@
 			console.error('Failed to create new note', error);
 		}
 		if (titleInput) {
-			titleInput.focus()
+			titleInput.focus();
 			titleInput.select();
 		}
 	}
@@ -157,6 +172,41 @@
 			localStorage.setItem('lastEditedNoteId', currentNote.id);
 		} catch (error) {
 			console.error('Failed to save note', error);
+		}
+	}
+
+	async function deleteNote(noteId) {
+		try {
+			// Fetch the note
+			const note = await pb.collection('notes').getOne(noteId);
+
+			// Check if the note has content
+			if (!note.content || note.content.trim() === '') {
+				// If no content, delete outright
+				await pb.collection('notes').delete(noteId);
+				console.log('Note deleted successfully');
+			} else {
+				// If there's content, show confirmation dialog
+				const confirmDelete = confirm(
+					'Are you sure you want to delete this note? This action can be undone later.'
+				);
+
+				if (confirmDelete) {
+					// Update the note with deleted flag and timestamp
+					await pb.collection('notes').update(noteId, {
+						deleted: true,
+						deletedDate: new Date().toISOString()
+					});
+					console.log('Note marked as deleted');
+				} else {
+					console.log('Deletion cancelled');
+				}
+			}
+
+			// Refresh the notes list or update UI as needed
+			refreshNotesList();
+		} catch (error) {
+			console.error('Error deleting note:', error);
 		}
 	}
 
@@ -207,7 +257,9 @@
 					<ul>
 						{#each notes as note (note.id)}
 							<li
-								class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id ? 'bg-blue-100' : ''}"
+								class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id
+									? 'bg-blue-100'
+									: ''}"
 								on:click={() => selectNote(note)}
 							>
 								<div class="font-semibold">{note.title}</div>
