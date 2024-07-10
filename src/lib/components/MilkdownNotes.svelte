@@ -12,7 +12,7 @@
 		IconChevronDown
 	} from '@tabler/icons-svelte';
 
-	import { Editor, rootCtx, defaultValueCtx, editorViewCtx } from '@milkdown/core';
+	import { Editor, rootCtx, defaultValueCtx, commandsCtx } from '@milkdown/core';
 	import { replaceAll } from '@milkdown/utils';
 	import { commonmark } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
@@ -24,9 +24,8 @@
 	import { goto } from '$app/navigation';
 	import { debounce } from 'lodash-es';
 
-	let notes: any[] = [];
+	let notes = [];
 	let currentNote = null;
-	$: console.log(`🚀 ~ currentNote:`, currentNote);
 	let content = '';
 	let title = '';
 	let sortBy = 'updated';
@@ -37,35 +36,35 @@
 	let editor: Editor;
 
 	onMount(async () => {
-    if ($currentUser) {
-        await loadNotes();
-    } else {
-        goto('/login');
-    }
-    const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
-    if (lastEditedNoteId) {
-        currentNote = notes.find((note) => note.id === lastEditedNoteId);
-        if (currentNote) {
-            content = currentNote.content;
-            title = currentNote.title;
-        }
-    }
+		if ($currentUser) {
+			await loadNotes();
+		} else {
+			goto('/login');
+		}
+		const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
+		if (lastEditedNoteId) {
+			currentNote = notes.find((note) => note.id === lastEditedNoteId);
+			if (currentNote) {
+				content = currentNote.content;
+				title = currentNote.title;
+			}
+		}
 
-    editor = await Editor.make()
-        .config((ctx) => {
-            ctx.set(rootCtx, document.getElementById('editor'));
-            ctx.set(defaultValueCtx, content);
-            ctx.get(listenerCtx).markdownUpdated((ctx, markdown, prevMarkdown) => {
-                content = markdown;
-                handleInput();
-            });
-        })
-        .use(nord)
-        .use(commonmark)
-        .use(history)
-        .use(listener)
-        .create();
-});
+		editor = await Editor.make()
+			.config((ctx) => {
+				ctx.set(rootCtx, document.getElementById('editor'));
+				ctx.set(defaultValueCtx, content);
+				ctx.get(listenerCtx).markdownUpdated((ctx, markdown, prevMarkdown) => {
+					content = markdown;
+					handleInput();
+				});
+			})
+			.use(nord)
+			.use(commonmark)
+			.use(history)
+			.use(listener)
+			.create();
+	});
 
 	async function loadNotes() {
 		isLoading = true;
@@ -103,26 +102,26 @@
 		}
 		loadNotes();
 	}
+
 	function selectNote(note) {
-    console.log('🚀 ~ selectNote ~ note:', note);
-    if (currentNote) {
-        saveNoteImmediately();
-    }
-    currentNote = note;
-    content = note.content;
-    title = note.title;
-    localStorage.setItem('lastEditedNoteId', note.id);
-    
-    if (editor) {
-        try {
-            editor.action((ctx) => {
-                ctx.set(defaultValueCtx, note.content);
-            });
-        } catch (error) {
-            console.error('Error updating editor content:', error);
-        }
-    }
-}
+		console.log(`🚀 ~ selectNote ~ note:`, note)
+		if (currentNote) {
+			saveNoteImmediately();
+		}
+		if (!note) {
+			console.error('Attempted to select undefined note');
+			return;
+		}
+		currentNote = note;
+		content = note.content;
+		title = note.title;
+		// localStorage.setItem('lastEditedNoteId', note.id);
+		if (editor) {
+			editor.action((ctx) => {
+				ctx.get(commandsCtx).call(replaceAll.key, { content: note.content });
+			});
+		}
+	}
 
 	async function createNewNote() {
 		if (!$currentUser) return;
@@ -136,10 +135,6 @@
 			};
 			const newNote = await pb.collection('notes').create(data);
 			notes = [newNote, ...notes];
-			if (!editor || !editor.action) {
-				console.error('Editor not fully initialized');
-				return;
-			}
 			selectNote(newNote);
 		} catch (error) {
 			console.error('Failed to create new note', error);
