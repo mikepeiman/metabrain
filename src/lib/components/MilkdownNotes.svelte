@@ -12,7 +12,7 @@
 		IconChevronDown
 	} from '@tabler/icons-svelte';
 
-	import { Editor, rootCtx, defaultValueCtx, commandsCtx, editorViewCtx } from '@milkdown/core';
+	import { Editor, rootCtx, defaultValueCtx, commandsCtx, editorViewCtx, parserCtx } from '@milkdown/core';
 	import { replaceAll } from '@milkdown/utils';
 	import { commonmark } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
@@ -34,52 +34,50 @@
 	let error = null;
 
 	let editor: Editor;
-    let editorReady = false;
+	let editorReady = false;
 
-
-    onMount(async () => {
-        if ($currentUser) {
-            await loadNotes();
-        } else {
-            goto('/login');
-        }
+	onMount(async () => {
+		if ($currentUser) {
+			await loadNotes();
+		} else {
+			goto('/login');
+		}
 
 		editor = await Editor.make()
-        .config((ctx) => {
-            ctx.set(rootCtx, document.getElementById('editor'));
-            ctx.set(defaultValueCtx, ''); // Start with an empty editor
-            ctx.get(listenerCtx)
-                .mounted(() => {
-                    editorReady = true;
-                    if (currentNote) {
-                        selectNote(currentNote); // Call selectNote to update editor content
-                    }
-                })
-                .markdownUpdated((ctx, markdown, prevMarkdown) => {
-                    content = markdown;
-                    handleInput();
-                });
-        })
-        .use(nord)
-        .use(commonmark)
-        .use(history)
-        .use(listener)
-        .create();
+			.config((ctx) => {
+				ctx.set(rootCtx, document.getElementById('editor'));
+				ctx.set(defaultValueCtx, ''); // Start with an empty editor
+				ctx
+					.get(listenerCtx)
+					.mounted(() => {
+						editorReady = true;
+						if (currentNote) {
+							selectNote(currentNote); // Call selectNote to update editor content
+						}
+					})
+					.markdownUpdated((ctx, markdown, prevMarkdown) => {
+						content = markdown;
+						handleInput();
+					});
+			})
+			.use(nord)
+			.use(commonmark)
+			.use(history)
+			.use(listener)
+			.create();
 
-        const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
-        if (lastEditedNoteId) {
-            currentNote = notes.find((note) => note.id === lastEditedNoteId);
-            if (currentNote) {
-                content = currentNote.content;
-                title = currentNote.title;
-                if (editorReady) {
-                    selectNote(currentNote);
-                }
-            }
-        }
-    });
-
-
+		const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
+		if (lastEditedNoteId) {
+			currentNote = notes.find((note) => note.id === lastEditedNoteId);
+			if (currentNote) {
+				content = currentNote.content;
+				title = currentNote.title;
+				if (editorReady) {
+					selectNote(currentNote);
+				}
+			}
+		}
+	});
 
 	async function loadNotes() {
 		isLoading = true;
@@ -128,7 +126,6 @@
         return;
     }
     currentNote = note;
-    content = note.content;
     title = note.title;
     localStorage.setItem('lastEditedNoteId', note.id);
     
@@ -136,10 +133,14 @@
     if (editor) {
         editor.action((ctx) => {
             const view = ctx.get(editorViewCtx);
-            view.dispatch(view.state.tr.replaceWith(0, view.state.doc.content.size, view.state.schema.text(note.content)));
+            const noteContent = note.content.trim() !== '' ? note.content : ' ';
+            const parser = ctx.get(parserCtx);
+            const doc = parser(noteContent);
+            view.dispatch(view.state.tr.replaceWith(0, view.state.doc.content.size, doc));
         });
     }
 }
+	
 	async function createNewNote() {
 		if (!$currentUser) return;
 
@@ -147,7 +148,7 @@
 		try {
 			const data = {
 				title: 'New Note',
-				content: '',
+				content: ' ', // Set content to a single space character
 				user_id: $currentUser.id
 			};
 			const newNote = await pb.collection('notes').create(data);
