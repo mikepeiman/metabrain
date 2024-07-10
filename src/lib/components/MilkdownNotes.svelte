@@ -195,7 +195,7 @@
 					// Update the note with deleted flag and timestamp
 					await pb.collection('notes').update(noteId, {
 						deleted: true,
-						deletedDate: new Date().toISOString()
+						deletionDate: new Date().toISOString()
 					});
 					toast.success('Note marked as deleted', {
 						description: 'You can restore it later from the archive.',
