@@ -5,6 +5,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import { Button } from '$lib/components/ui/button';
 	import { toast } from 'svelte-sonner';
+	import { get } from 'svelte/store';
 	import {
 		IconNote,
 		IconPlus,
@@ -174,59 +175,68 @@
 			localStorage.setItem('lastEditedNoteId', currentNote.id);
 		} catch (error) {
 			console.error('Failed to save note', error);
+			toast.info('Failed to save note', error);
 		}
 	}
+
+
+
+
+
 
 	async function deleteNote(noteId: string) {
-		try {
-			const note = await pb.collection('notes').getOne(noteId);
+  try {
+    const note = await pb.collection('notes').getOne(noteId);
 
-			if (!note.content || note.content.trim() === '') {
-				// If no content, delete outright
-				await pb.collection('notes').delete(noteId);
-				toast.success('Note deleted successfully');
-			} else {
-				// If there's content, show confirmation dialog
-				const confirmDelete = confirm(
-					'Are you sure you want to delete this note? This action can be undone later.'
-				);
-
-				if (confirmDelete) {
-					// Update the note with deleted flag and timestamp
-					await pb.collection('notes').update(noteId, {
-						deleted: true,
-						deletionDate: new Date().toISOString()
-					});
-					toast.success('Note marked as deleted', {
-						description: 'You can restore it later from the archive.',
-						action: {
-							label: 'Undo',
-							onClick: () => restoreNote(noteId)
-						}
-					});
-				} else {
-					toast.info('Deletion cancelled');
-					return;
-				}
-			}
-
-			// Refresh the notes list
-			await loadNotes();
-
-			// Clear the current note if it was the one deleted
-			if (currentNote?.id === noteId) {
-				currentNote = null;
-				title = '';
-				// Clear the editor content (adjust this based on your editor implementation)
-				if (editor) {
-					editor.setContent('');
-				}
-			}
-		} catch (error) {
-			console.error('Error deleting note:', error);
-			toast.error('Failed to delete note');
-		}
-	}
+    if (!note.content || note.content.trim() === '') {
+      // If no content, delete outright
+      await pb.collection('notes').delete(noteId);
+      toast.success('Note deleted successfully');
+    } else {
+      // If there's content, show confirmation dialog
+      const confirmDelete = confirm('Are you sure you want to delete this note? This action can be undone later.');
+      
+      if (confirmDelete) {
+        // Update the note with deleted flag and deletedDate
+        await pb.collection('notes').update(noteId, {
+          deleted: true,
+          deletedDate: new Date().toISOString()
+        });
+        toast.success('Note marked as deleted', {
+          description: 'You can restore it later from the archive.',
+          action: {
+            label: 'Undo',
+            onClick: () => restoreNote(noteId)
+          }
+        });
+      } else {
+        toast.info('Deletion cancelled');
+        return;
+      }
+    }
+    
+    // Refresh the notes list
+    await loadNotes();
+    
+    // Clear the current note if it was the one deleted
+    if (currentNote?.id === noteId) {
+      currentNote = null;
+      title = '';
+      
+      // Clear the editor content
+      if (editor) {
+        editor.action((ctx) => {
+          const view = ctx.get(editorViewCtx);
+          const { state } = view;
+          view.dispatch(state.tr.delete(0, state.doc.content.size));
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    toast.error('Failed to delete note');
+  }
+}
 
 	async function restoreNote(noteId: string) {
 		try {
