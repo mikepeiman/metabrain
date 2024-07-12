@@ -92,6 +92,18 @@
 				sort: `${sortDirection === 'desc' ? '-' : ''}${sortBy}`
 			});
 			notes = resultList.items;
+
+			if (sortBy === 'title') {
+            notes.sort((a, b) => {
+                const titleA = a.title.toLowerCase();
+                const titleB = b.title.toLowerCase();
+                if (sortDirection === 'asc') {
+                    return titleA.localeCompare(titleB);
+                } else {
+                    return titleB.localeCompare(titleA);
+                }
+            });
+        }
 		} catch (err) {
 			console.error('Failed to load notes', err);
 			error =
