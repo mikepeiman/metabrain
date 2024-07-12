@@ -6,6 +6,8 @@
 	import { Button } from '$lib/components/ui/button';
 	import { toast } from 'svelte-sonner';
 	import { get } from 'svelte/store';
+	import * as ContextMenu from "$lib/components/ui/context-menu/index.js";
+  
 	import {
 		IconNote,
 		IconPlus,
@@ -323,32 +325,30 @@
 						{#each notes as note (note.id)}
 							<!-- svelte-ignore a11y-click-events-have-key-events -->
 							<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-							<li
-								class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id
-									? 'bg-blue-100'
-									: ''}"
-								on:click={() => selectNote(note)}
-							>
-								<div class="flex items-center justify-between">
-									<div>
+							<ContextMenu.Root>
+								<ContextMenu.Trigger>
+								  <li
+									class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id ? 'bg-blue-100' : ''}"
+									on:click={() => selectNote(note)}
+								  >
+									<div class="flex items-center justify-between">
+									  <div>
 										<div class="font-semibold">{note.title}</div>
 										<div class="text-sm text-gray-500">
-											{note.updated ? 'Updated ' : 'Created '}
-											{formatDate(note.updated || note.created)}
+										  {note.updated ? 'Updated ' : 'Created '}
+										  {formatDate(note.updated || note.created)}
 										</div>
+									  </div>
 									</div>
-									<Button
-										variant="ghost"
-										size="sm"
-										on:click={(event) => {
-											event.stopPropagation();
-											deleteNote(note.id);
-										}}
-									>
-										<IconTrash class="h-4 w-4" />
-									</Button>
-								</div>
-							</li>
+								  </li>
+								</ContextMenu.Trigger>
+								<ContextMenu.Content class="w-64">
+								  <ContextMenu.Item on:click={() => handleDelete(note)}>
+									Delete Note
+								  </ContextMenu.Item>
+								  <!-- You can add more context menu items here if needed -->
+								</ContextMenu.Content>
+							  </ContextMenu.Root>
 						{/each}
 					</ul>
 				{/if}
