@@ -150,34 +150,45 @@
 		}
 	}
 
-	const saveNote = debounce(async () => {
-		if (!currentNote || !$currentUser) return;
-		try {
-			await pb.collection('notes').update(currentNote.id, { title, content });
-			localStorage.setItem('lastEditedNoteId', currentNote.id);
-		} catch (error) {
-			console.error('Failed to save note', error);
-		}
-	}, 1000);
 
-	function handleInput() {
-		if (currentNote) {
-			currentNote.content = content;
-			currentNote.title = title;
-			saveNote();
-		}
-	}
 
-	async function saveNoteImmediately() {
-		if (!currentNote || !$currentUser) return;
-		try {
-			await pb.collection('notes').update(currentNote.id, { title, content });
-			localStorage.setItem('lastEditedNoteId', currentNote.id);
-		} catch (error) {
-			console.error('Failed to save note', error);
-			toast.info('Failed to save note', error);
-		}
-	}
+    function handleInput() {
+        if (currentNote) {
+            currentNote.content = content;
+            currentNote.title = title;
+            saveNote();
+            updateNoteInList(currentNote.id, title);
+        }
+    }
+
+    function updateNoteInList(id: string, newTitle: string) {
+        notes = notes.map(note => 
+            note.id === id ? { ...note, title: newTitle } : note
+        );
+    }
+
+    const saveNote = debounce(async () => {
+        if (!currentNote || !$currentUser) return;
+        try {
+            await pb.collection('notes').update(currentNote.id, { title, content });
+            localStorage.setItem('lastEditedNoteId', currentNote.id);
+            updateNoteInList(currentNote.id, title);
+        } catch (error) {
+            console.error('Failed to save note', error);
+        }
+    }, 1000);
+
+    async function saveNoteImmediately() {
+        if (!currentNote || !$currentUser) return;
+        try {
+            await pb.collection('notes').update(currentNote.id, { title, content });
+            localStorage.setItem('lastEditedNoteId', currentNote.id);
+            updateNoteInList(currentNote.id, title);
+        } catch (error) {
+            console.error('Failed to save note', error);
+            toast.info('Failed to save note', error);
+        }
+    }
 
 
 
