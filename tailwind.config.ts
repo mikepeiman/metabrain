@@ -1,12 +1,13 @@
 import { fontFamily } from "tailwindcss/defaultTheme";
 import type { Config } from "tailwindcss";
 import tailwindcssRadixColors from "tailwindcss-radix-colors";
+import flattenColorPalette from 'tailwindcss/lib/util/flattenColorPalette';
 
 const config: Config = {
 	darkMode: ["class"],
 	content: ["./src/**/*.{html,js,svelte,ts}"],
 	safelist: ["dark"],
-	plugins: [tailwindcssRadixColors],
+	plugins: [tailwindcssRadixColors, addVariablesForColors],
 	theme: {
 		container: {
 			center: true,
@@ -62,5 +63,16 @@ const config: Config = {
 		}
 	},
 };
+
+function addVariablesForColors({ addBase, theme }: any) {
+	let allColors = flattenColorPalette(theme('colors'));
+	let newVars = Object.fromEntries(
+		Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
+	);
+
+	addBase({
+		':root': newVars
+	});
+}
 
 export default config;

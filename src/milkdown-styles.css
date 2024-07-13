@@ -1,0 +1,152 @@
+/* milkdown-styles.css with Radix colors */
+
+:root {
+    --md-text-color: var(--slate12);
+    --md-bg-color: var(--slate1);
+    --md-link-color: var(--blue9);
+    --md-code-bg: var(--slate3);
+    --md-quote-border: var(--slate7);
+    --md-heading-gradient-1: var(--tomato-9);
+    --md-heading-gradient-2: var(--amber-9);
+    --md-heading-gradient-3: var(--cyan-9);
+    --md-heading-gradient-4: var(--pink-9);
+    --md-heading-gradient-5: var(--plum-9);
+    --md-heading-gradient-6: var(--blue-9);
+    
+
+  }
+  
+  .milkdown {
+    color: var(--md-text-color);
+    background-color: var(--md-bg-color);
+    line-height: 1.6;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  }
+  
+  .milkdown h1, .milkdown h2, .milkdown h3, .milkdown h4, .milkdown h5, .milkdown h6 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    font-weight: bold;
+    line-height: 1.2;
+  }
+  
+  .milkdown h1 {
+    font-size: 2.5em;
+    background: linear-gradient(45deg, var(--md-heading-gradient-1), var(--md-heading-gradient-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .milkdown h2 {
+    font-size: 2em;
+    background: linear-gradient(45deg, var(--md-heading-gradient-2), var(--md-heading-gradient-3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .milkdown h3 {
+    font-size: 1.75em;
+    background: linear-gradient(45deg, var(--md-heading-gradient-3), var(--md-heading-gradient-4));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .milkdown h4 {
+    font-size: 1.5em;
+    background: linear-gradient(45deg, var(--md-heading-gradient-4), var(--md-heading-gradient-5));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .milkdown h5 {
+    font-size: 1.25em;
+    background: linear-gradient(45deg, var(--md-heading-gradient-5), var(--md-heading-gradient-6));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .milkdown h6 {
+    font-size: 1em;
+    background: linear-gradient(45deg, var(--md-heading-gradient-6), var(--md-heading-gradient-1));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  /* The rest of the styles remain the same, just using the new color variables */
+  .milkdown p {
+    margin-bottom: 1em;
+  }
+  
+  .milkdown strong {
+    font-weight: bold;
+  }
+  
+  .milkdown em {
+    font-style: italic;
+  }
+  
+  .milkdown blockquote {
+    margin: 1em 0;
+    padding-left: 1em;
+    border-left: 4px solid var(--md-quote-border);
+    font-style: italic;
+  }
+  
+  .milkdown a {
+    color: var(--md-link-color);
+    text-decoration: none;
+  }
+  
+  .milkdown a:hover {
+    text-decoration: underline;
+  }
+  
+  .milkdown ul, .milkdown ol {
+    margin: 1em 0;
+    padding-left: 2em;
+  }
+  
+  .milkdown li {
+    margin-bottom: 0.5em;
+  }
+  
+  .milkdown code {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: var(--md-code-bg);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+  }
+  
+  .milkdown pre {
+    background-color: var(--md-code-bg);
+    padding: 1em;
+    border-radius: 5px;
+    overflow-x: auto;
+  }
+  
+  .milkdown pre code {
+    background-color: transparent;
+    padding: 0;
+  }
+  
+  .milkdown hr {
+    border: none;
+    border-top: 1px solid var(--md-quote-border);
+    margin: 2em 0;
+  }
+  
+  .milkdown table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+  }
+  
+  .milkdown th, .milkdown td {
+    border: 1px solid var(--md-quote-border);
+    padding: 0.5em;
+  }
+  
+  .milkdown th {
+    background-color: var(--md-code-bg);
+    font-weight: bold;
+  }
