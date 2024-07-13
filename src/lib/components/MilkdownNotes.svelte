@@ -35,6 +35,7 @@
 		editorViewCtx,
 		parserCtx
 	} from '@milkdown/core';
+	import { clipboard } from '@milkdown/plugin-clipboard';
 	import { commonmark, headingAttr } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
 	import { nord } from '@milkdown/theme-nord';
@@ -81,6 +82,7 @@
 			})
 			.use(nord)
 			.use(commonmark)
+			.use(clipboard)
 			.use(history)
 			.use(listener)
 			.create();
@@ -441,14 +443,3 @@
 	</Resizable.PaneGroup>
 </main>
 
-
-<style>
-:global(.milkdown h1) {
-  font-size: 2em;
-  font-weight: bold;
-}
-:global(.milkdown h2) {
-  font-size: 1.5em;
-  font-weight: bold;
-}
-</style>
