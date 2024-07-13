@@ -291,10 +291,10 @@
 	}
 </script>
 
-<main class="h-screen bg-gray-100 text-gray-800">
+<main class="h-screen bg-slate-2 text-slate-12">
 	<Resizable.PaneGroup direction="horizontal" class="h-full">
 		<Resizable.Pane defaultSize={25} minSize={15} maxSize={40}>
-			<div class="h-full overflow-y-auto bg-white p-4">
+			<div class="h-full overflow-y-auto bg-slate-1 p-4">
 				<div class="mb-4 flex items-center justify-between">
 					<h2 class="text-xl font-bold">Notes</h2>
 					<Button on:click={createNewNote} variant="outline" size="sm">
@@ -322,9 +322,9 @@
 						<IconLoader2 class="h-8 w-8 animate-spin" />
 					</div>
 				{:else if error}
-					<div class="text-red-500">{error}</div>
+					<div class="text-red-9">{error}</div>
 				{:else if notes.length === 0}
-					<div class="text-gray-500">No notes found. Create a new one!</div>
+					<div class="text-slate-11">No notes found. Create a new one!</div>
 				{:else}
 					<ul>
 						{#each notes as note (note.id)}
@@ -333,15 +333,15 @@
 							<ContextMenu.Root>
 								<ContextMenu.Trigger>
 									<li
-										class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id
-											? 'bg-blue-100'
+										class="cursor-pointer p-2 hover:bg-slate-3 {currentNote?.id === note.id
+											? 'bg-blue-4'
 											: ''}"
 										on:click={() => selectNote(note)}
 									>
 										<div class="flex items-center justify-between">
 											<div>
 												<div class="font-semibold">{note.title}</div>
-												<div class="text-sm text-gray-500">
+												<div class="text-sm text-slate-11">
 													{note.updated ? 'Updated ' : 'Created '}
 													{formatDate(note.updated || note.created)}
 												</div>
@@ -404,7 +404,7 @@
 									</ContextMenu.Item>
 
 									<ContextMenu.Item on:click={() => deleteNote(note.id)}>
-										<span class="flex items-center text-red-500"
+										<span class="flex items-center text-red-9"
 											><IconTrash class="mr-2" /> Delete</span
 										>
 									</ContextMenu.Item>
