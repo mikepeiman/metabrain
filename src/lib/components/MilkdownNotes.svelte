@@ -435,7 +435,8 @@
 		</Resizable.Pane>
 		<Resizable.Handle />
 		<Resizable.Pane defaultSize={75} minSize={60} maxSize={85}>
-			<div class="flex h-full flex-col p-4">
+			<div class="flex h-full  ">
+				<div class="flex flex-grow overflow-y-scroll p-4 flex-col">
 				<div class="mb-4 flex items-center">
 					<IconNote class="mr-2" />
 					<input
@@ -448,7 +449,6 @@
 						disabled={!currentNote}
 					/>
 				</div>
-				<div class="flex flex-grow overflow-y-scroll">
 					<div class="w-full pr-2 ">
 						<div id="editor" class="h-full w-full "></div>
 					</div>
