@@ -1,10 +1,12 @@
 import { fontFamily } from "tailwindcss/defaultTheme";
 import type { Config } from "tailwindcss";
+import tailwindcssRadixColors from "tailwindcss-radix-colors";
 
 const config: Config = {
 	darkMode: ["class"],
 	content: ["./src/**/*.{html,js,svelte,ts}"],
 	safelist: ["dark"],
+	plugins: [tailwindcssRadixColors],
 	theme: {
 		container: {
 			center: true,
