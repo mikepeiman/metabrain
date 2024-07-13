@@ -6,9 +6,20 @@
 	import { Button } from '$lib/components/ui/button';
 	import { toast } from 'svelte-sonner';
 	import { get } from 'svelte/store';
-	import * as ContextMenu from "$lib/components/ui/context-menu/index.js";
-  
+	import * as ContextMenu from '$lib/components/ui/context-menu/index.js';
 	import {
+		IconExternalLink,
+		IconArrowRight,
+		IconWindowMaximize,
+		IconCopy,
+		IconArrowRightCircle,
+		IconBookmark,
+		IconGitMerge,
+		IconLink,
+		IconClock,
+		IconAppWindow,
+		IconFolder,
+		IconEdit,
 		IconNote,
 		IconPlus,
 		IconLoader2,
@@ -96,16 +107,16 @@
 			notes = resultList.items;
 
 			if (sortBy === 'title') {
-            notes.sort((a, b) => {
-                const titleA = a.title.toLowerCase();
-                const titleB = b.title.toLowerCase();
-                if (sortDirection === 'asc') {
-                    return titleA.localeCompare(titleB);
-                } else {
-                    return titleB.localeCompare(titleA);
-                }
-            });
-        }
+				notes.sort((a, b) => {
+					const titleA = a.title.toLowerCase();
+					const titleB = b.title.toLowerCase();
+					if (sortDirection === 'asc') {
+						return titleA.localeCompare(titleB);
+					} else {
+						return titleB.localeCompare(titleA);
+					}
+				});
+			}
 		} catch (err) {
 			console.error('Failed to load notes', err);
 			error =
@@ -164,104 +175,97 @@
 		}
 	}
 
+	function handleInput() {
+		if (currentNote) {
+			currentNote.content = content;
+			currentNote.title = title;
+			saveNote();
+			updateNoteInList(currentNote.id, title);
+		}
+	}
 
+	function updateNoteInList(id: string, newTitle: string) {
+		notes = notes.map((note) => (note.id === id ? { ...note, title: newTitle } : note));
+	}
 
-    function handleInput() {
-        if (currentNote) {
-            currentNote.content = content;
-            currentNote.title = title;
-            saveNote();
-            updateNoteInList(currentNote.id, title);
-        }
-    }
+	const saveNote = debounce(async () => {
+		if (!currentNote || !$currentUser) return;
+		try {
+			await pb.collection('notes').update(currentNote.id, { title, content });
+			localStorage.setItem('lastEditedNoteId', currentNote.id);
+			updateNoteInList(currentNote.id, title);
+		} catch (error) {
+			console.error('Failed to save note', error);
+		}
+	}, 1000);
 
-    function updateNoteInList(id: string, newTitle: string) {
-        notes = notes.map(note => 
-            note.id === id ? { ...note, title: newTitle } : note
-        );
-    }
-
-    const saveNote = debounce(async () => {
-        if (!currentNote || !$currentUser) return;
-        try {
-            await pb.collection('notes').update(currentNote.id, { title, content });
-            localStorage.setItem('lastEditedNoteId', currentNote.id);
-            updateNoteInList(currentNote.id, title);
-        } catch (error) {
-            console.error('Failed to save note', error);
-        }
-    }, 1000);
-
-    async function saveNoteImmediately() {
-        if (!currentNote || !$currentUser) return;
-        try {
-            await pb.collection('notes').update(currentNote.id, { title, content });
-            localStorage.setItem('lastEditedNoteId', currentNote.id);
-            updateNoteInList(currentNote.id, title);
-        } catch (error) {
-            console.error('Failed to save note', error);
-            toast.info('Failed to save note', error);
-        }
-    }
-
-
-
-
-
+	async function saveNoteImmediately() {
+		if (!currentNote || !$currentUser) return;
+		try {
+			await pb.collection('notes').update(currentNote.id, { title, content });
+			localStorage.setItem('lastEditedNoteId', currentNote.id);
+			updateNoteInList(currentNote.id, title);
+		} catch (error) {
+			console.error('Failed to save note', error);
+			toast.info('Failed to save note', error);
+		}
+	}
 
 	async function deleteNote(noteId: string) {
-  try {
-    const note = await pb.collection('notes').getOne(noteId);
+		try {
+			const note = await pb.collection('notes').getOne(noteId);
 
-    if (!note.content || note.content.trim() === '') {
-      // If no content, delete outright
-      await pb.collection('notes').delete(noteId);
-      toast.success('Note deleted successfully');
-    } else {
-      // If there's content, show confirmation dialog
-      const confirmDelete = confirm('Are you sure you want to delete this note? This action can be undone later.');
-      
-      if (confirmDelete) {
-        // Update the note with deleted flag and deletedDate
-        await pb.collection('notes').update(noteId, {
-          deleted: true,
-          deletedDate: new Date().toISOString()
-        });
-        toast.success('Note marked as deleted', {
-          description: 'You can restore it later from the archive.',
-          action: {
-            label: 'Undo',
-            onClick: () => restoreNote(noteId)
-          }
-        });
-      } else {
-        toast.info('Deletion cancelled');
-        return;
-      }
-    }
-    
-    // Refresh the notes list
-    await loadNotes();
-    
-    // Clear the current note if it was the one deleted
-    if (currentNote?.id === noteId) {
-      currentNote = null;
-      title = '';
-      
-      // Clear the editor content
-      if (editor) {
-        editor.action((ctx) => {
-          const view = ctx.get(editorViewCtx);
-          const { state } = view;
-          view.dispatch(state.tr.delete(0, state.doc.content.size));
-        });
-      }
-    }
-  } catch (error) {
-    console.error('Error deleting note:', error);
-    toast.error('Failed to delete note');
-  }
-}
+			if (!note.content || note.content.trim() === '') {
+				// If no content, delete outright
+				await pb.collection('notes').delete(noteId);
+				toast.success('Note deleted successfully');
+			} else {
+				// If there's content, show confirmation dialog
+				const confirmDelete = confirm(
+					'Are you sure you want to delete this note? This action can be undone later.'
+				);
+
+				if (confirmDelete) {
+					// Update the note with deleted flag and deletedDate
+					await pb.collection('notes').update(noteId, {
+						deleted: true,
+						deletedDate: new Date().toISOString()
+					});
+					toast.success('Note marked as deleted', {
+						description: 'You can restore it later from the archive.',
+						action: {
+							label: 'Undo',
+							onClick: () => restoreNote(noteId)
+						}
+					});
+				} else {
+					toast.info('Deletion cancelled');
+					return;
+				}
+			}
+
+			// Refresh the notes list
+			await loadNotes();
+
+			// Clear the current note if it was the one deleted
+			if (currentNote?.id === noteId) {
+				currentNote = null;
+				title = '';
+
+				// Clear the editor content
+				if (editor) {
+					editor.action((ctx) => {
+						const view = ctx.get(editorViewCtx);
+						const { state } = view;
+						view.dispatch(state.tr.delete(0, state.doc.content.size));
+					});
+				}
+			}
+		} catch (error) {
+			console.error('Error deleting note:', error);
+			toast.error('Failed to delete note');
+		}
+	}
 
 	async function restoreNote(noteId: string) {
 		try {
@@ -327,28 +331,83 @@
 							<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 							<ContextMenu.Root>
 								<ContextMenu.Trigger>
-								  <li
-									class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id ? 'bg-blue-100' : ''}"
-									on:click={() => selectNote(note)}
-								  >
-									<div class="flex items-center justify-between">
-									  <div>
-										<div class="font-semibold">{note.title}</div>
-										<div class="text-sm text-gray-500">
-										  {note.updated ? 'Updated ' : 'Created '}
-										  {formatDate(note.updated || note.created)}
+									<li
+										class="cursor-pointer p-2 hover:bg-gray-100 {currentNote?.id === note.id
+											? 'bg-blue-100'
+											: ''}"
+										on:click={() => selectNote(note)}
+									>
+										<div class="flex items-center justify-between">
+											<div>
+												<div class="font-semibold">{note.title}</div>
+												<div class="text-sm text-gray-500">
+													{note.updated ? 'Updated ' : 'Created '}
+													{formatDate(note.updated || note.created)}
+												</div>
+											</div>
 										</div>
-									  </div>
-									</div>
-								  </li>
+									</li>
 								</ContextMenu.Trigger>
+
 								<ContextMenu.Content class="w-64">
-								  <ContextMenu.Item on:click={() => deleteNote(note.id)}>
-									Delete Note
-								  </ContextMenu.Item>
-								  <!-- You can add more context menu items here if needed -->
+									<ContextMenu.Item>
+										<IconExternalLink class="mr-2" />
+										Open in new tab
+									</ContextMenu.Item>
+									<ContextMenu.Item>
+										<IconArrowRight class="mr-2" />
+										Open to the right
+									</ContextMenu.Item>
+									<ContextMenu.Item>
+										<IconWindowMaximize class="mr-2" />
+										Open in new window
+									</ContextMenu.Item>
+									<ContextMenu.Separator />
+									<ContextMenu.Item>
+										<IconCopy class="mr-2" />
+										Make a copy
+									</ContextMenu.Item>
+									<ContextMenu.Item>
+										<IconArrowRightCircle class="mr-2" />
+										Move file to...
+									</ContextMenu.Item>
+									<ContextMenu.Item>
+										<IconBookmark class="mr-2" />
+										Bookmark...
+									</ContextMenu.Item>
+									<ContextMenu.Item>
+										<IconGitMerge class="mr-2" />
+										Merge entire file with...
+									</ContextMenu.Item>
+									<ContextMenu.Item>
+										<IconLink class="mr-2" />
+										Copy Obsidian URL
+									</ContextMenu.Item>
+									<ContextMenu.Separator />
+									<ContextMenu.Item>
+										<IconClock class="mr-2" />
+										Open version history
+									</ContextMenu.Item>
+									<ContextMenu.Item>
+										<IconAppWindow class="mr-2" />
+										Open in default app
+									</ContextMenu.Item>
+									<ContextMenu.Item>
+										<IconFolder class="mr-2" />
+										Show in system explorer
+									</ContextMenu.Item>
+									<ContextMenu.Separator />
+									<ContextMenu.Item>
+										<IconEdit class="mr-2" />
+										Rename...
+									</ContextMenu.Item>
+
+									<ContextMenu.Item on:click={() => deleteNote(note.id)}>
+										<span class="text-red-500 flex items-center"><IconTrash class="mr-2" /> Delete</span>
+									</ContextMenu.Item>
+									<!-- You can add more context menu items here if needed -->
 								</ContextMenu.Content>
-							  </ContextMenu.Root>
+							</ContextMenu.Root>
 						{/each}
 					</ul>
 				{/if}
