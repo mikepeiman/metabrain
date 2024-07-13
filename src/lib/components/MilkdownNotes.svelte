@@ -340,7 +340,7 @@
 											: ''}"
 										on:click={() => selectNote(note)}
 									>
-										<div class="flex items-center justify-between">
+										<div class="flex items-center justify-between ">
 											<div>
 												<div class="font-semibold">{note.title}</div>
 												<div class="text-sm text-slate-11">
@@ -433,9 +433,9 @@
 						disabled={!currentNote}
 					/>
 				</div>
-				<div class="flex flex-grow">
-					<div class="w-1/2 pr-2">
-						<div id="editor" class="h-full w-full"></div>
+				<div class="flex flex-grow overflow-y-scroll">
+					<div class="w-full pr-2 ">
+						<div id="editor" class="h-full w-full "></div>
 					</div>
 				</div>
 			</div>
