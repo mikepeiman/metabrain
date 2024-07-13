@@ -343,7 +343,7 @@
 								  </li>
 								</ContextMenu.Trigger>
 								<ContextMenu.Content class="w-64">
-								  <ContextMenu.Item on:click={() => handleDelete(note)}>
+								  <ContextMenu.Item on:click={() => deleteNote(note.id)}>
 									Delete Note
 								  </ContextMenu.Item>
 								  <!-- You can add more context menu items here if needed -->
