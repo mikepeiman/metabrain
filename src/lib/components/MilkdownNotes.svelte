@@ -50,9 +50,7 @@
 		parserCtx
 	} from '@milkdown/core';
 	import { clipboard } from '@milkdown/plugin-clipboard';
-	import { toggleMark, wrapIn } from '@milkdown/utils';
-	import { InputRule, inputRules } from 'prosemirror-inputrules';
-
+	
 	import { commonmark, headingAttr } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
 	import { nord } from '@milkdown/theme-nord';
