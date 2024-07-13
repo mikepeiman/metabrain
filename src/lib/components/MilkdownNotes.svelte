@@ -35,11 +35,12 @@
 		editorViewCtx,
 		parserCtx
 	} from '@milkdown/core';
-	import { commonmark } from '@milkdown/preset-commonmark';
+	import { commonmark, headingAttr } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
 	import { nord } from '@milkdown/theme-nord';
 	import '@milkdown/theme-nord/style.css';
 	import { listener, listenerCtx } from '@milkdown/plugin-listener';
+	import { setAttr } from '@milkdown/utils';
 	import { format, parseISO } from 'date-fns';
 	import { goto } from '$app/navigation';
 	import { debounce } from 'lodash-es';
@@ -403,7 +404,9 @@
 									</ContextMenu.Item>
 
 									<ContextMenu.Item on:click={() => deleteNote(note.id)}>
-										<span class="text-red-500 flex items-center"><IconTrash class="mr-2" /> Delete</span>
+										<span class="flex items-center text-red-500"
+											><IconTrash class="mr-2" /> Delete</span
+										>
 									</ContextMenu.Item>
 									<!-- You can add more context menu items here if needed -->
 								</ContextMenu.Content>
@@ -437,3 +440,15 @@
 		</Resizable.Pane>
 	</Resizable.PaneGroup>
 </main>
+
+
+<style>
+	.milkdown h1 {
+  font-size: 2em;
+  font-weight: bold;
+}
+.milkdown h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+</style>
