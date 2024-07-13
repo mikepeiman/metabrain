@@ -1,4 +1,18 @@
 <script lang="ts">
+	// TODO: 
+	// 1. Fix advanced markdown styling, so we can edit markdown characters as in Obsidian
+	// 2. Add tags
+	// 3. Add tags dropdown filter and select
+	// 4. Add search
+	// 5. Add timestamps
+	// 6. Add advanced tag feature: properties:values
+	// 7. Add slash commands
+	// 8. hover actions menu per line in editor, or per styled string/block
+	// 9. Add undo/redo
+	// 10. add keyuboard shortcuts for styling
+
+	
+	
 	import { onMount, afterUpdate } from 'svelte';
 	import { pb, currentUser } from '$utils/pocketbase';
 	import * as Resizable from '$lib/components/ui/resizable';
@@ -36,6 +50,9 @@
 		parserCtx
 	} from '@milkdown/core';
 	import { clipboard } from '@milkdown/plugin-clipboard';
+	import { toggleMark, wrapIn } from '@milkdown/utils';
+	import { InputRule, inputRules } from 'prosemirror-inputrules';
+
 	import { commonmark, headingAttr } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
 	import { nord } from '@milkdown/theme-nord';
