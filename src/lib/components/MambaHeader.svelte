@@ -58,7 +58,7 @@
 		<a href="/" class="logo-area" aria-label="Back to homepage">
 		  <img src="/images/metabrain-logo.svg" alt="MetaBrain Logo" class="h-8 w-auto" />
 		</a>
-		<div class="search-area">
+		<div class="search-area bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1">
 		  <div class="relative">
 			<IconSearch
 			  class="absolute left-3 top-1/2 -translate-y-1/2 transform text-slate-9"
@@ -68,7 +68,7 @@
 			  type="text"
 			  bind:value={searchQuery}
 			  placeholder="Search..."
-			  class="w-full rounded-lg border border-slate-7 bg-slate-2 py-2 pl-10 pr-4 text-slate-12 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-8 dark:bg-slate-2 dark:text-slate-1 dark:border-slate-6 dark:focus:ring-blue-9"
+			  class="w-full rounded-lg border border-slate-7 bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1 py-2 pl-10 pr-4  focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-8  dark:border-slate-6 dark:focus:ring-blue-9"
 			/>
 		  </div>
 		</div>
