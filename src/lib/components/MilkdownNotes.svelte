@@ -324,7 +324,7 @@
 						<Select.Trigger class="w-full bg-slate-3 text-slate-4 hover:bg-slate-4 hover:text-slate-12 dark:bg-slate-12 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1">
 							<Select.Value placeholder="Sort by..." />
 						</Select.Trigger>
-						<Select.Content class="bg-slate-2 dark:bg-slate-11">
+						<Select.Content class="bg-slate-2 dark:bg-slate-12">
 							{#each ['created', 'updated', 'title'] as field}
 								<Select.Item value={field} class="text-slate-11 hover:bg-slate-4 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1">
 									{field.charAt(0).toUpperCase() + field.slice(1)}
@@ -365,7 +365,7 @@
 									</li>
 								</ContextMenu.Trigger>
 
-								<ContextMenu.Content class="w-64 bg-slate-2 dark:bg-slate-11">
+								<ContextMenu.Content class="w-64 bg-slate-2 dark:bg-slate-12">
 									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
 										<IconExternalLink class="mr-2" />
 										Open in new tab

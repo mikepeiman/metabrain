@@ -67,7 +67,7 @@
     {/if}
   
     {#if analysisResult}
-    <div class="bg-white shadow-md rounded p-6 mb-4">
+    <div class="bg-white shadow-md rounded p-6 mb-4 bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1">
       <h2 class="text-2xl font-semibold mb-2">Analysis Results for conversation with {analysisResult.conversationName}</h2>
       <p class="mb-2">Analyzed Period: {formatDate(analysisResult.analysisPeriod.start)} to {formatDate(analysisResult.analysisPeriod.end)}</p>
       <p class="mb-2">Total Messages: {analysisResult.totalTextMessages}</p>
