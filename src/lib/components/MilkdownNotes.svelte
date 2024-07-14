@@ -1,5 +1,5 @@
 <script lang="ts">
-	// TODO: 
+	// TODO:
 	// 1. Fix advanced markdown styling, so we can edit markdown characters as in Obsidian
 	// 2. Add tags
 	// 3. Add tags dropdown filter and select
@@ -11,8 +11,6 @@
 	// 9. Add undo/redo
 	// 10. add keyuboard shortcuts for styling
 
-	
-	
 	import { onMount, afterUpdate } from 'svelte';
 	import { pb, currentUser } from '$utils/pocketbase';
 	import * as Resizable from '$lib/components/ui/resizable';
@@ -50,7 +48,7 @@
 		parserCtx
 	} from '@milkdown/core';
 	import { clipboard } from '@milkdown/plugin-clipboard';
-	
+
 	import { commonmark, headingAttr } from '@milkdown/preset-commonmark';
 	import { history } from '@milkdown/plugin-history';
 	import { nord } from '@milkdown/theme-nord';
@@ -65,6 +63,7 @@
 	let notes = [];
 	let currentNote = null;
 	let content = '';
+	let contentArea: HTMLDivElement;
 	let title = '';
 	let sortBy = 'updated';
 	let sortDirection = 'desc';
@@ -306,6 +305,33 @@
 	function getSortIcon(field) {
 		return sortBy === field ? (sortDirection === 'asc' ? IconChevronUp : IconChevronDown) : null;
 	}
+
+	function handleKeydown(event) {
+		console.log(`🚀 ~ handleKeydown ~ event:`, event)
+		if (event.key === 'Enter') {
+			event.preventDefault(); // Prevent default behavior (new line)
+			focusEditor();
+		}
+	}
+
+	function focusEditor() {
+    if (editor) {
+      editor.action((ctx) => {
+        const view = ctx.get(editorViewCtx);
+        view.focus();
+        const { state } = view;
+        if (state.doc.content.size > 0) {
+          // If the document has content, move cursor to the end
+          const { tr } = state;
+          const lastPos = state.doc.content.size;
+          view.dispatch(tr.setSelection(state.selection.constructor.near(state.doc.resolve(lastPos))));
+        } else {
+          // If the document is empty, just focus without changing selection
+          view.focus();
+        }
+      });
+    }
+  }
 </script>
 
 <main class="h-screen bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1">
@@ -314,19 +340,29 @@
 			<div class="h-full overflow-y-auto bg-slate-2 p-4 dark:bg-slate-12">
 				<div class="mb-4 flex items-center justify-between">
 					<h2 class="text-xl font-bold text-slate-12 dark:text-slate-1">Notes</h2>
-					<Button on:click={createNewNote} variant="outline" size="sm" class="bg-slate-3 text-slate-11 hover:bg-slate-4 hover:text-slate-12 dark:bg-slate-10 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1">
+					<Button
+						on:click={createNewNote}
+						variant="outline"
+						size="sm"
+						class="bg-slate-3 text-slate-11 hover:bg-slate-4 hover:text-slate-12 dark:bg-slate-10 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1"
+					>
 						<IconPlus class="mr-2 h-4 w-4" />
 						Create
 					</Button>
 				</div>
 				<div class="mb-4">
 					<Select.Root onSelectedChange={handleSortChange} value={sortBy}>
-						<Select.Trigger class="w-full bg-slate-3 text-slate-4 hover:bg-slate-4 hover:text-slate-12 dark:bg-slate-12 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1">
+						<Select.Trigger
+							class="w-full bg-slate-3 text-slate-4 hover:bg-slate-4 hover:text-slate-12 dark:bg-slate-12 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1"
+						>
 							<Select.Value placeholder="Sort by..." />
 						</Select.Trigger>
 						<Select.Content class="bg-slate-2 dark:bg-slate-12">
 							{#each ['created', 'updated', 'title'] as field}
-								<Select.Item value={field} class="text-slate-11 hover:bg-slate-4 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1">
+								<Select.Item
+									value={field}
+									class="text-slate-11 hover:bg-slate-4 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1"
+								>
 									{field.charAt(0).toUpperCase() + field.slice(1)}
 									<svelte:component this={getSortIcon(field)} class="ml-2 inline-block" />
 								</Select.Item>
@@ -348,14 +384,17 @@
 							<ContextMenu.Root>
 								<ContextMenu.Trigger>
 									<li
-										class="cursor-pointer p-2 hover:bg-slate-3 hover:text-slate-12 dark:hover:bg-slate-10 dark:hover:text-slate-1 {currentNote?.id === note.id
+										class="cursor-pointer p-2 hover:bg-slate-3 hover:text-slate-12 dark:hover:bg-slate-10 dark:hover:text-slate-1 {currentNote?.id ===
+										note.id
 											? 'bg-blue-4 text-slate-12 dark:bg-blue-9 dark:text-slate-1'
 											: ''}"
 										on:click={() => selectNote(note)}
 									>
 										<div class="flex items-center justify-between">
 											<div>
-												<div class="font-semibold text-slate-12 dark:text-slate-1">{note.title}</div>
+												<div class="font-semibold text-slate-12 dark:text-slate-1">
+													{note.title}
+												</div>
 												<div class="text-sm text-slate-11 dark:text-slate-3">
 													{note.updated ? 'Updated ' : 'Created '}
 													{formatDate(note.updated || note.created)}
@@ -366,59 +405,86 @@
 								</ContextMenu.Trigger>
 
 								<ContextMenu.Content class="w-64 bg-slate-2 dark:bg-slate-12">
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconExternalLink class="mr-2" />
 										Open in new tab
 									</ContextMenu.Item>
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconArrowRight class="mr-2" />
 										Open to the right
 									</ContextMenu.Item>
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconWindowMaximize class="mr-2" />
 										Open in new window
 									</ContextMenu.Item>
 									<ContextMenu.Separator class="bg-slate-6 dark:bg-slate-7" />
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconCopy class="mr-2" />
 										Make a copy
 									</ContextMenu.Item>
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconArrowRightCircle class="mr-2" />
 										Move file to...
 									</ContextMenu.Item>
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconBookmark class="mr-2" />
 										Bookmark...
 									</ContextMenu.Item>
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconGitMerge class="mr-2" />
 										Merge entire file with...
 									</ContextMenu.Item>
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconLink class="mr-2" />
 										Copy Obsidian URL
 									</ContextMenu.Item>
 									<ContextMenu.Separator class="bg-slate-6 dark:bg-slate-7" />
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconClock class="mr-2" />
 										Open version history
 									</ContextMenu.Item>
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconAppWindow class="mr-2" />
 										Open in default app
 									</ContextMenu.Item>
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconFolder class="mr-2" />
 										Show in system explorer
 									</ContextMenu.Item>
 									<ContextMenu.Separator class="bg-slate-6 dark:bg-slate-7" />
-									<ContextMenu.Item class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1">
+									<ContextMenu.Item
+										class="text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1"
+									>
 										<IconEdit class="mr-2" />
 										Rename...
 									</ContextMenu.Item>
 
-									<ContextMenu.Item on:click={() => deleteNote(note.id)} class="text-red-9 hover:bg-red-3 hover:text-red-11 dark:text-red-3 dark:hover:bg-red-9 dark:hover:text-red-1">
+									<ContextMenu.Item
+										on:click={() => deleteNote(note.id)}
+										class="text-red-9 hover:bg-red-3 hover:text-red-11 dark:text-red-3 dark:hover:bg-red-9 dark:hover:text-red-1"
+									>
 										<span class="flex items-center">
 											<IconTrash class="mr-2" /> Delete
 										</span>
@@ -433,21 +499,27 @@
 		<Resizable.Handle class="bg-slate-6 hover:bg-slate-7 dark:bg-slate-7 dark:hover:bg-slate-6" />
 		<Resizable.Pane defaultSize={75} minSize={60} maxSize={85}>
 			<div class="flex h-full">
-				<div class="flex flex-grow overflow-y-scroll p-4 flex-col">
-				<div class="mb-4 flex items-center">
-					<IconNote class="mr-2 text-slate-11 dark:text-slate-2" />
-					<input
-						type="text"
-						bind:value={title}
-						bind:this={titleInput}
-						on:input={handleInput}
-						class="w-full border-none bg-transparent text-2xl font-bold focus:outline-none text-slate-12 dark:text-slate-1 placeholder-slate-11 dark:placeholder-slate-3"
-						placeholder="Note Title"
-						disabled={!currentNote}
-					/>
-				</div>
+				<div class="flex flex-grow flex-col overflow-y-scroll p-4">
+					<div class="mb-4 flex items-center">
+						<IconNote class="mr-2 text-slate-11 dark:text-slate-2" />
+						<input
+							type="text"
+							bind:value={title}
+							bind:this={titleInput}
+							on:input={handleInput}
+							on:keydown={handleKeydown}
+							class="w-full border-none bg-transparent text-2xl font-bold text-slate-12 placeholder-slate-11 focus:outline-none dark:text-slate-1 dark:placeholder-slate-3"
+							placeholder="Note Title"
+							disabled={!currentNote}
+						/>
+					</div>
 					<div class="w-full pr-2">
-						<div id="editor" class="h-full w-full bg-slate-1 dark:bg-slate-12 text-slate-12 dark:text-slate-1"></div>
+						<div
+							id="editor"
+					
+							bind:this={contentArea}
+							class="h-full w-full bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1"
+						></div>
 					</div>
 				</div>
 			</div>
