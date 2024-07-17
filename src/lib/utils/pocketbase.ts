@@ -21,25 +21,60 @@ function createCurrentUser() {
 
 export const currentUser = createCurrentUser();
 
-// Create a derived store for the user profile
-export const currentUserProfile = derived(currentUser, ($currentUser, set) => {
-    if ($currentUser) {
-        pb.collection('users').getOne($currentUser.id)
-            .then(profile => set(profile))
-            .catch(err => {
-                console.error('Failed to fetch user profile:', err);
-                set(null);
-            });
-    } else {
-        set(null);
-    }
-}, null);
+// Create a writable store for the user profile
+function createCurrentUserProfile() {
+    const { subscribe, set } = writable(null);
+
+    return {
+        subscribe,
+        set,
+        update: async (data) => {
+            const user = pb.authStore.model;
+            if (user) {
+                try {
+                    const updatedProfile = await pb.collection('users').update(user.id, data);
+                    set(updatedProfile);
+                    return updatedProfile;
+                } catch (err) {
+                    console.error('Failed to update user profile:', err);
+                    throw err;
+                }
+            } else {
+                console.error('No authenticated user');
+                throw new Error('No authenticated user');
+            }
+        }
+    };
+}
+
+export const currentUserProfile = createCurrentUserProfile();
 
 // Update currentUser store when auth state changes
 pb.authStore.onChange((auth) => {
     console.log('AuthStore changed', auth);
     currentUser.set(pb.authStore.model);
+    if (auth) {
+        refreshUserProfile();
+    } else {
+        currentUserProfile.set(null);
+    }
 });
+
+// Function to refresh the user profile
+async function refreshUserProfile() {
+    const user = pb.authStore.model;
+    if (user) {
+        try {
+            const profile = await pb.collection('users').getOne(user.id);
+            currentUserProfile.set(profile);
+        } catch (err) {
+            console.error('Failed to fetch user profile:', err);
+            currentUserProfile.set(null);
+        }
+    } else {
+        currentUserProfile.set(null);
+    }
+}
 
 // Test connection
 pb.health.check().then(() => {
@@ -60,4 +95,9 @@ export async function getUserProfile() {
         return pb.collection('users').getOne(user.id);
     }
     return null;
+}
+
+// Helper function to update user profile
+export async function updateUserProfile(data) {
+    return currentUserProfile.update(data);
 }
