@@ -14,6 +14,9 @@ importers:
       '@milkdown/core':
         specifier: ^7.4.0
         version: 7.4.0(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0))
+      '@milkdown/plugin-clipboard':
+        specifier: ^7.4.0
+        version: 7.4.0(@milkdown/core@7.4.0(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0)))(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0))
       '@milkdown/plugin-history':
         specifier: ^7.4.0
         version: 7.4.0(@milkdown/core@7.4.0(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0)))(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0))
@@ -29,6 +32,9 @@ importers:
       '@milkdown/utils':
         specifier: ^7.4.0
         version: 7.4.0(@milkdown/core@7.4.0(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0)))(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0))
+      '@radix-ui/colors':
+        specifier: ^3.0.0
+        version: 3.0.0
       '@tabler/icons-svelte':
         specifier: ^3.7.0
         version: 3.9.0(svelte@4.2.18)
@@ -359,6 +365,12 @@ packages:
 
   '@milkdown/exception@7.4.0':
     resolution: {integrity: sha512-id0kZrhIA6QRlpgPsrmNNZY71NPwujJg4RPZUSrbM+4PuXXZfzaVtMWd3LGn5HrDRDhkvmIrRzbEmqqfUnGYLg==}
+
+  '@milkdown/plugin-clipboard@7.4.0':
+    resolution: {integrity: sha512-w9jMRfBpEL0yDF4MYNP3tN9/7O7jLl00q90Zcdlotcw2VsB/v1WyPkRYzCBXTqA+YPQA2Mtag4w6ghKCU1OQ4w==}
+    peerDependencies:
+      '@milkdown/core': ^7.2.0
+      '@milkdown/prose': ^7.2.0
 
   '@milkdown/plugin-history@7.4.0':
     resolution: {integrity: sha512-CWTxo4lBp6wPTxtZDyU+52OpSE9lJ3f4pDVAfyljbgQnmASb1RpQV6SBQHOrJBcXmqPm6bH2xWI/VOOnIAILBQ==}
@@ -1912,6 +1924,16 @@ snapshots:
   '@milkdown/exception@7.4.0':
     dependencies:
       tslib: 2.6.3
+
+  '@milkdown/plugin-clipboard@7.4.0(@milkdown/core@7.4.0(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0)))(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0))':
+    dependencies:
+      '@milkdown/core': 7.4.0(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0))
+      '@milkdown/prose': 7.4.0
+      '@milkdown/utils': 7.4.0(@milkdown/core@7.4.0(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0)))(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0))
+      tslib: 2.6.3
+    transitivePeerDependencies:
+      - '@milkdown/ctx'
+      - '@milkdown/transformer'
 
   '@milkdown/plugin-history@7.4.0(@milkdown/core@7.4.0(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0)))(@milkdown/ctx@7.4.0)(@milkdown/prose@7.4.0)(@milkdown/transformer@7.4.0(@milkdown/prose@7.4.0))':
     dependencies:
