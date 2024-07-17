@@ -85,12 +85,13 @@
 		</nav>
 		<div class="account-area hidden items-center space-x-4 lg:flex">
 		  {#if $currentUser}
-			<button
+			<a
+			href="/settings"
 			  class="flex items-center text-base font-medium text-slate-11 transition-colors duration-300 hover:text-slate-12 dark:text-slate-3 dark:hover:text-slate-1"
 			>
 			  <IconSettings class="mr-2" size={20} />
 			  Account Settings
-			</button>
+		</a>
 			<button
 			  on:click={logout}
 			  class="flex items-center text-base font-medium text-slate-11 transition-colors duration-300 hover:text-slate-12 dark:text-slate-3 dark:hover:text-slate-1"
