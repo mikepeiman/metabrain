@@ -7,16 +7,23 @@
 	import { onMount } from 'svelte';
 	import MilkdownNotes from '@/components/MilkdownNotes.svelte';
 
-	import { pb, currentUser, currentUserProfile } from '$utils/pocketbase';
+  import { currentUser, currentUserProfile, getCurrentUser, getUserProfile } from '$utils/pocketbase';
+
+// Subscribe to the stores
+$: user = $currentUser;
+$: profile = $currentUserProfile;
 
 	onMount(async () => {
-		console.log(`🚀 ~ currentUserProfile:`, currentUserProfile);
-		console.log(`🚀 ~ currentUser:`, currentUser);
+		console.log(`🚀 ~ currentUserProfile:`, $currentUserProfile);
+		console.log(`🚀 ~ currentUser:`, $currentUser);
 	});
 </script>
 
 <div class="flex w-screen flex-col items-center justify-center">
-	{#if $currentUser}
-		<h1>Welcome to Metabrain {$currentUserProfile.username}!</h1>
-	{/if}
+  {#if user}
+  <p>Welcome, {user.email}</p>
+  {#if profile}
+      <p>Your name is {profile.username}</p>
+  {/if}
+{/if}
 </div>
