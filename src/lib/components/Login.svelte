@@ -100,6 +100,7 @@
 			/>
 			<span class="ml-2 text-sm text-slate-11">Remember me</span>
 		</label>
+		<!-- svelte-ignore a11y-invalid-attribute -->
 		<a href="#" class="text-sm text-blue-9 hover:underline">Forgot password?</a>
 	</div>
 
