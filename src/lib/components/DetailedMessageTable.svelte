@@ -4,6 +4,9 @@
     
     export let groupedMessagesList;
   
+    /**
+	 * @param {string | number | Date} dateString
+	 */
     function formatDate(dateString) {
       return new Date(dateString).toLocaleString();
     }

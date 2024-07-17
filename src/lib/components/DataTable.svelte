@@ -2,11 +2,17 @@
 <script>
     export let data;
   
+    /**
+	 * @param {number | undefined} seconds
+	 */
     function formatTime(seconds) {
       if (seconds === undefined || isNaN(seconds)) return 'N/A';
       return `${(seconds / 60).toFixed(2)} minutes`;
     }
   
+    /**
+	 * @param {number | null | undefined} stat
+	 */
     function formatStat(stat) {
       if (stat === undefined || stat === null) return 'N/A';
       return formatTime(stat);

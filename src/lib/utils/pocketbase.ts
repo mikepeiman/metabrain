@@ -4,6 +4,7 @@ import { writable } from 'svelte/store';
 export const pb = new PocketBase('http://127.0.0.1:8090');
 
 export const currentUser = writable(pb.authStore.model);
+export const currentUserProfile = await pb.collection('users').getOne(pb.authStore.model?.id);
 
 pb.authStore.onChange((auth) => {
     console.log('AuthStore changed', auth);
