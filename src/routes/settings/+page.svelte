@@ -34,8 +34,11 @@
             lastname = $currentUserProfile.lastname || '';
             avatarPreview = $currentUserProfile.avatar ? pb.getFileUrl($currentUserProfile, $currentUserProfile.avatar) : null;
             bannerPreview = $currentUserProfile.banner ? pb.getFileUrl($currentUserProfile, $currentUserProfile.banner) : null;
+
+			updateImagePreviews();
         }
     });
+$: console.log(`🚀 ~ username:`, username)
 
     function removeImage(type: 'avatar' | 'banner') {
         if (type === 'avatar') {

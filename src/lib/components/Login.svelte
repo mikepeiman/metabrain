@@ -18,7 +18,7 @@
 	async function handleLogin() {
 		try {
 			await pb.collection('users').authWithPassword(email, password);
-			goto('/dashboard');
+			goto('/');
 		} catch (error) {
 			errorMessage = 'Invalid email or password';
 		}
@@ -35,7 +35,7 @@
 				console.log('New user signed up!');
 			}
 
-			goto('/dashboard');
+			goto('/');
 		} catch (error) {
 			console.error('OAuth error:', error);
 			errorMessage = `Failed to login with ${provider}`;
