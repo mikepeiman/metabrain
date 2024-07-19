@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	// import { onMount } from '$app/environment';
+    import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import { pb, currentUserProfile, updateUserProfile } from '$utils/pocketbase';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -9,46 +11,80 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import { toast } from 'svelte-sonner';
 	import { IconX } from '@tabler/icons-svelte';
+	import ImageSelect from './imageSelect.svelte';
 
-	let username = '';
+let isLoading = true;
+let imageLoading = true
+	$: username = '';
 	let email = '';
-	let emailVisibility = false;
+	// let emailVisibility = false;
 	let firstname = '';
 	let lastname = '';
-	let avatarPreview: string | null = null;
-	let bannerPreview: string | null = null;
-	let isLoading = false;
+
+	let avatarInput: HTMLInputElement;
 	let avatarFile: File | null = null;
+	let avatarPreview: string | null = null;
+
+	let bannerInput: HTMLInputElement;
 	let bannerFile: File | null = null;
+	let bannerPreview: string | null = null;
 
-    onMount(async () => {
-        if (!$currentUserProfile) {
-            await pb.collection('users').authRefresh();
-        }
+	let selectedFile: File | null = null;
+	
+    async function loadProfileData() {
+        console.log("Loading profile data");
+		if (!$currentUserProfile) {
+			console.log(`🚀 ~ onMount ~ !$currentUserProfile:`, $currentUserProfile);
+			await pb.collection('users').authRefresh();
+			// test
+		}
 
-        if ($currentUserProfile) {
-            username = $currentUserProfile.username;
-            email = $currentUserProfile.email;
-            emailVisibility = $currentUserProfile.emailVisibility;
-            firstname = $currentUserProfile.firstname || '';
-            lastname = $currentUserProfile.lastname || '';
-            avatarPreview = $currentUserProfile.avatar ? pb.getFileUrl($currentUserProfile, $currentUserProfile.avatar) : null;
-            bannerPreview = $currentUserProfile.banner ? pb.getFileUrl($currentUserProfile, $currentUserProfile.banner) : null;
+		if ($currentUserProfile) {
+			console.log(`🚀 ~ onMount ~ $currentUserProfile:`, $currentUserProfile);
+			username = await $currentUserProfile.username;
+			email = $currentUserProfile.email;
+			// emailVisibility = $currentUserProfile.emailVisibility;
+			firstname = $currentUserProfile.firstname || '';
+			lastname = $currentUserProfile.lastname || '';
+			avatarPreview = $currentUserProfile.avatar
+				? pb.getFileUrl($currentUserProfile, $currentUserProfile.avatar)
+				: null;
+			console.log(`🚀 ~ onMount ~ avatarPreview:`, avatarPreview);
+			bannerPreview = $currentUserProfile.banner
+				? pb.getFileUrl($currentUserProfile, $currentUserProfile.banner)
+				: null;
+			console.log(`🚀 ~ onMount ~ bannerPreview:`, bannerPreview);
 
 			updateImagePreviews();
-        }
-    });
-$: console.log(`🚀 ~ username:`, username)
-
-    function removeImage(type: 'avatar' | 'banner') {
-        if (type === 'avatar') {
-            avatarFile = null;
-            avatarPreview = null;
-        } else {
-            bannerFile = null;
-            bannerPreview = null;
-        }
+		}
+		isLoading = false;
     }
+
+	$: console.log(`🚀 ~ username:`, username);
+	onMount(async () => {
+		console.log(`🚀 ~ onMount ~ $currentUserProfile:`, $currentUserProfile);
+		loadProfileData();
+	});
+
+	beforeNavigate(() => {
+		console.log(`🚀 ~ beforeNavigate ~ $currentUserProfile:`, $currentUserProfile);
+		loadProfileData();
+	});
+
+	afterNavigate(() => {
+		console.log(`🚀 ~ afterNavigate ~ $currentUserProfile:`, $currentUserProfile);
+		loadProfileData();
+	});
+
+	function removeImage(type: 'avatar' | 'banner') {
+		if (type === 'avatar') {
+			avatarFile = null;
+			avatarPreview = null;
+		} else {
+			bannerFile = null;
+			bannerPreview = null;
+		}
+	}
 
 	function updateImagePreviews() {
 		if ($currentUserProfile) {
@@ -69,6 +105,8 @@ $: console.log(`🚀 ~ username:`, username)
 	}
 
 	function handleImageSelect(event: Event, type: 'avatar' | 'banner') {
+		console.log(`🚀 ~ handleImageSelect ~ type:`, type)
+		console.log(`🚀 ~ handleImageSelect ~ event:`, event)
 		const input = event.target as HTMLInputElement;
 		if (input.files && input.files[0]) {
 			const file = input.files[0];
@@ -101,7 +139,7 @@ $: console.log(`🚀 ~ username:`, username)
 	}
 
 	async function uploadImage(file: File, type: 'avatar' | 'banner') {
-		isLoading = true;
+		imageLoading = true;
 		try {
 			const formData = new FormData();
 			formData.append(type, file);
@@ -113,17 +151,17 @@ $: console.log(`🚀 ~ username:`, username)
 			console.error(`Error uploading ${type}:`, error);
 			toast.error(`Failed to upload ${type}`);
 		} finally {
-			isLoading = false;
+			imageLoading = false;
 		}
 	}
 
 	async function handleSubmit() {
-		isLoading = true;
+		imageLoading = true;
 		try {
 			const formData = new FormData();
 			formData.append('username', username);
 			formData.append('email', email);
-			formData.append('emailVisibility', emailVisibility.toString());
+			// formData.append('emailVisibility', emailVisibility.toString());
 			formData.append('firstname', firstname);
 			formData.append('lastname', lastname);
 
@@ -142,12 +180,27 @@ $: console.log(`🚀 ~ username:`, username)
 			console.error('Error updating profile:', error);
 			toast.error(`Failed to update profile: ${error.message}`);
 		} finally {
-			isLoading = false;
+			imageLoading = false;
 		}
 	}
 
-	let avatarInput: HTMLInputElement;
-	let bannerInput: HTMLInputElement;
+
+function handleFileSelect() {
+	const input = document.createElement('input');
+	input.type = 'file';
+	input.accept = 'image/*'; // Specify accepted file types if needed
+
+	input.onchange = (event: Event) => {
+		console.log(`🚀 ~ handleFileSelect ~ event:`, event)
+		const files = (event.target as HTMLInputElement).files;
+		if (files && files.length > 0) {
+			selectedFile = files[0];
+			console.log('Selected file:', selectedFile.name);
+		}
+	};
+
+	input.click();
+}
 </script>
 
 <Card class="mx-auto w-full max-w-3xl">
@@ -181,12 +234,13 @@ $: console.log(`🚀 ~ username:`, username)
 
 			<div class="space-y-4">
 				<Label>Avatar Image</Label>
+				<!-- svelte-ignore a11y-no-static-element-interactions -->
 				<div
 					class="border-gray-300 relative h-40 cursor-pointer overflow-hidden rounded-lg border-2 border-dashed p-4 text-center"
 					on:drop|preventDefault={(e) => handleDrop(e, 'avatar')}
 					on:dragover={handleDragOver}
 				>
-					{#if isLoading}
+					{#if imageLoading}
 						<div class="absolute inset-0 flex items-center justify-center space-x-2">
 							<div class="dark:bg-cyan-600 h-4 w-4 animate-pulse rounded-full"></div>
 							<div class="dark:bg-cyan-600 h-4 w-4 animate-pulse rounded-full"></div>
@@ -200,7 +254,7 @@ $: console.log(`🚀 ~ username:`, username)
 						/>
 						<button
 							type="button"
-							class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+							class="bg-red-500 absolute right-2 top-2 rounded-full p-1 text-white"
 							on:click|stopPropagation={() => removeImage('avatar')}
 						>
 							<X size={20} />
@@ -210,7 +264,7 @@ $: console.log(`🚀 ~ username:`, username)
 							Drag and drop an image here, or click to select
 						</p>
 					{/if}
-					<Input
+					<input
 						bind:this={avatarInput}
 						type="file"
 						accept="image/*"
@@ -218,20 +272,20 @@ $: console.log(`🚀 ~ username:`, username)
 						class="hidden"
 						id="avatarUpload"
 					/>
-					<div on:click|stopPropagation={() => avatarInput.click()} class="absolute bottom-2 left-1/2 transform -translate-x-1/2">
-						<Button
-							type="button"
-							variant="outline"
-							class="bg-white bg-opacity-50"
-						>
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					<div
+						on:click|stopPropagation={() => avatarInput.click()}
+						class="absolute bottom-2 left-1/2 -translate-x-1/2 transform"
+					>
+						<Button type="button" variant="outline" class="bg-white bg-opacity-50">
 							Choose File
 						</Button>
 					</div>
 				</div>
 			</div>
-			
+
 			<Separator />
-			
+
 			<div class="space-y-4">
 				<Label>Banner Image</Label>
 				<div
@@ -239,7 +293,7 @@ $: console.log(`🚀 ~ username:`, username)
 					on:drop|preventDefault={(e) => handleDrop(e, 'banner')}
 					on:dragover={handleDragOver}
 				>
-					{#if isLoading}
+					{#if imageLoading}
 						<div class="absolute inset-0 flex items-center justify-center space-x-2">
 							<div class="dark:bg-cyan-600 h-4 w-4 animate-pulse rounded-full"></div>
 							<div class="dark:bg-cyan-600 h-4 w-4 animate-pulse rounded-full"></div>
@@ -253,7 +307,7 @@ $: console.log(`🚀 ~ username:`, username)
 						/>
 						<button
 							type="button"
-							class="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+							class="bg-red-500 absolute right-2 top-2 rounded-full p-1 text-white"
 							on:click|stopPropagation={() => removeImage('banner')}
 						>
 							<X size={20} />
@@ -271,12 +325,11 @@ $: console.log(`🚀 ~ username:`, username)
 						class="hidden"
 						id="bannerUpload"
 					/>
-					<div on:click|stopPropagation={() => bannerInput.click()} class="absolute bottom-2 left-1/2 transform -translate-x-1/2">
-						<Button
-							type="button"
-							variant="outline"
-							class="bg-white bg-opacity-50"
-						>
+					<div
+						on:click|stopPropagation={() => bannerInput.click()}
+						class="absolute bottom-2 left-1/2 -translate-x-1/2 transform"
+					>
+						<Button type="button" variant="outline" class="bg-white bg-opacity-50">
 							Choose File
 						</Button>
 					</div>
@@ -294,4 +347,5 @@ $: console.log(`🚀 ~ username:`, username)
 			</Button>
 		</form>
 	</CardContent>
+	<!-- <ImageSelect /> -->
 </Card>
