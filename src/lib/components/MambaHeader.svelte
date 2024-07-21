@@ -159,6 +159,7 @@
 			<div class="space-y-1 px-2">
 			  {#if $currentUser}
 				<button
+				  on:click={() => goto('/settings')}
 				  class="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-slate-12 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-1 dark:hover:bg-slate-11 dark:hover:text-slate-1"
 				>
 				  <IconSettings class="mr-4 inline" size={20} />
@@ -174,6 +175,7 @@
 			  {:else}
 				<a
 				  href="/login"
+				  on:click={toggleDrawer}
 				  class="block rounded-md px-3 py-2 text-base font-medium text-slate-12 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-1 dark:hover:bg-slate-11 dark:hover:text-slate-1"
 				>
 				  <IconLogin class="mr-4 inline" size={20} />
@@ -181,6 +183,7 @@
 				</a>
 				<a
 				  href="/register"
+				  on:click={toggleDrawer}
 				  class="block rounded-md bg-blue-9 px-3 py-2 text-base font-medium text-white hover:bg-blue-10 dark:bg-blue-10 dark:hover:bg-blue-11"
 				>
 				  <IconUserPlus class="mr-4 inline" size={20} />
