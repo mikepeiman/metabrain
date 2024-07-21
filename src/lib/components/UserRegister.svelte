@@ -43,7 +43,7 @@
           placeholder="Email" 
           required 
           autocomplete="email"
-          class="peer w-full rounded-lg border-2 border-slate-6 bg-slate-3 px-4 py-3 pl-10 text-slate-12 transition-colors duration-300 focus:border-blue-8 focus:bg-slate-1 focus:outline-none dark:border-slate-7 dark:bg-slate-11 dark:text-slate-1 dark:focus:border-blue-6 dark:focus:bg-slate-12"
+          class="peer w-full rounded-lg border-2 border-slate-6 bg-slate-3 px-4 py-3 pl-10 text-slate-12 transition-colors duration-300 focus:border-blue-8 focus:bg-slate-1 focus:outline-none dark:border-slate-7 dark:bg-slate-12 dark:text-slate-1 dark:focus:border-blue-6 dark:focus:bg-slate-12"
         />
         <IconMail class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-slate-9 transition-colors duration-300 peer-focus:text-blue-9 dark:text-slate-6 dark:peer-focus:text-blue-6" />
       </div>
@@ -55,7 +55,7 @@
           placeholder="Password" 
           required 
           autocomplete="new-password"
-          class="peer w-full rounded-lg border-2 border-slate-6 bg-slate-3 px-4 py-3 pl-10 text-slate-12 transition-colors duration-300 focus:border-blue-8 focus:bg-slate-1 focus:outline-none dark:border-slate-7 dark:bg-slate-11 dark:text-slate-1 dark:focus:border-blue-6 dark:focus:bg-slate-12"
+          class="peer w-full rounded-lg border-2 border-slate-6 bg-slate-3 px-4 py-3 pl-10 text-slate-12 transition-colors duration-300 focus:border-blue-8 focus:bg-slate-1 focus:outline-none dark:border-slate-7 dark:bg-slate-12 dark:text-slate-1 dark:focus:border-blue-6 dark:focus:bg-slate-12"
         />
         <IconLock class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-slate-9 transition-colors duration-300 peer-focus:text-blue-9 dark:text-slate-6 dark:peer-focus:text-blue-6" />
       </div>
@@ -67,7 +67,7 @@
           placeholder="Confirm Password" 
           required 
           autocomplete="new-password"
-          class="peer w-full rounded-lg border-2 border-slate-6 bg-slate-3 px-4 py-3 pl-10 text-slate-12 transition-colors duration-300 focus:border-blue-8 focus:bg-slate-1 focus:outline-none dark:border-slate-7 dark:bg-slate-11 dark:text-slate-1 dark:focus:border-blue-6 dark:focus:bg-slate-12"
+          class="peer w-full rounded-lg border-2 border-slate-6 bg-slate-3 px-4 py-3 pl-10 text-slate-12 transition-colors duration-300 focus:border-blue-8 focus:bg-slate-1 focus:outline-none dark:border-slate-7 dark:bg-slate-12 dark:text-slate-1 dark:focus:border-blue-6 dark:focus:bg-slate-12"
         />
         <IconShieldCheck class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-slate-9 transition-colors duration-300 peer-focus:text-blue-9 dark:text-slate-6 dark:peer-focus:text-blue-6" />
       </div>
@@ -99,14 +99,14 @@
     <div class="mt-6 grid grid-cols-2 gap-3">
       <button
         on:click={() => registerWithProvider('github')}
-        class="inline-flex w-full justify-center rounded-md border border-slate-6 bg-slate-1 px-4 py-2 text-sm font-medium text-slate-11 shadow-sm hover:bg-slate-2 dark:border-slate-7 dark:bg-slate-11 dark:text-slate-3 dark:hover:bg-slate-10"
+        class="inline-flex w-full justify-center rounded-md border border-slate-6 bg-slate-1 px-4 py-2 text-sm font-medium text-slate-11 shadow-sm hover:bg-slate-2 dark:border-slate-7 dark:bg-slate-12 dark:text-slate-3 dark:hover:bg-slate-10"
       >
         <IconBrandGithub class="h-5 w-5" />
         <span class="ml-2">GitHub</span>
       </button>
       <button
         on:click={() => registerWithProvider('google')}
-        class="inline-flex w-full justify-center rounded-md border border-slate-6 bg-slate-1 px-4 py-2 text-sm font-medium text-slate-11 shadow-sm hover:bg-slate-2 dark:border-slate-7 dark:bg-slate-11 dark:text-slate-3 dark:hover:bg-slate-10"
+        class="inline-flex w-full justify-center rounded-md border border-slate-6 bg-slate-1 px-4 py-2 text-sm font-medium text-slate-11 shadow-sm hover:bg-slate-2 dark:border-slate-7 dark:bg-slate-12 dark:text-slate-3 dark:hover:bg-slate-10"
       >
         <IconBrandGoogle class="h-5 w-5" />
         <span class="ml-2">Google</span>
