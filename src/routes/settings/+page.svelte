@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	// import { onMount } from '$app/environment';
-    import { beforeNavigate, afterNavigate } from '$app/navigation';
-	import { pb, currentUserProfile, updateUserProfile } from '$utils/pocketbase';
+	import { beforeNavigate, afterNavigate } from '$app/navigation';
+	import { pb, currentUserProfile, updateUserProfile, refreshAuth } from '$utils/pocketbase';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -13,9 +13,9 @@
 	import { IconX } from '@tabler/icons-svelte';
 	import ImageSelect from './imageSelect.svelte';
 
-let isLoading = true;
-let imageLoading = true
-	$: username = '';
+	let isLoading = true;
+	let imageLoading = true;
+	let username = '';
 	let email = '';
 	// let emailVisibility = false;
 	let firstname = '';
@@ -30,50 +30,45 @@ let imageLoading = true
 	let bannerPreview: string | null = null;
 
 	let selectedFile: File | null = null;
-	
-    async function loadProfileData() {
-        console.log("Loading profile data");
-		if (!$currentUserProfile) {
-			console.log(`🚀 ~ onMount ~ !$currentUserProfile:`, $currentUserProfile);
-			await pb.collection('users').authRefresh();
-			// test
-		}
 
-		if ($currentUserProfile) {
-			console.log(`🚀 ~ onMount ~ $currentUserProfile:`, $currentUserProfile);
-			username = await $currentUserProfile.username;
-			email = $currentUserProfile.email;
-			// emailVisibility = $currentUserProfile.emailVisibility;
-			firstname = $currentUserProfile.firstname || '';
-			lastname = $currentUserProfile.lastname || '';
-			avatarPreview = $currentUserProfile.avatar
-				? pb.getFileUrl($currentUserProfile, $currentUserProfile.avatar)
-				: null;
-			console.log(`🚀 ~ onMount ~ avatarPreview:`, avatarPreview);
-			bannerPreview = $currentUserProfile.banner
-				? pb.getFileUrl($currentUserProfile, $currentUserProfile.banner)
-				: null;
-			console.log(`🚀 ~ onMount ~ bannerPreview:`, bannerPreview);
-
-			updateImagePreviews();
-		}
-		isLoading = false;
+	async function loadProfileData() {
+    console.log("Loading profile data");
+    if ($currentUserProfile) {
+        console.log(`🚀 ~ loadProfileData ~ $currentUserProfile:`, $currentUserProfile);
+        username = $currentUserProfile.username;
+        email = $currentUserProfile.email;
+        firstname = $currentUserProfile.firstname || '';
+        lastname = $currentUserProfile.lastname || '';
+        updateImagePreviews();
+    } else {
+        console.log("No current user profile");
+        // Optionally, you could try to refresh the auth here
+        await refreshAuth();
     }
+    isLoading = false;
+}
+
+	// $: if ($currentUserProfile) {
+	// 	loadProfileData();
+	// }
 
 	$: console.log(`🚀 ~ username:`, username);
 	onMount(async () => {
 		console.log(`🚀 ~ onMount ~ $currentUserProfile:`, $currentUserProfile);
+		if (!$currentUserProfile) {
+			await refreshAuth();
+		}
 		loadProfileData();
 	});
 
 	beforeNavigate(() => {
 		console.log(`🚀 ~ beforeNavigate ~ $currentUserProfile:`, $currentUserProfile);
-		loadProfileData();
+		// loadProfileData();
 	});
 
 	afterNavigate(() => {
 		console.log(`🚀 ~ afterNavigate ~ $currentUserProfile:`, $currentUserProfile);
-		loadProfileData();
+		// loadProfileData();
 	});
 
 	function removeImage(type: 'avatar' | 'banner') {
@@ -105,8 +100,8 @@ let imageLoading = true
 	}
 
 	function handleImageSelect(event: Event, type: 'avatar' | 'banner') {
-		console.log(`🚀 ~ handleImageSelect ~ type:`, type)
-		console.log(`🚀 ~ handleImageSelect ~ event:`, event)
+		console.log(`🚀 ~ handleImageSelect ~ type:`, type);
+		console.log(`🚀 ~ handleImageSelect ~ event:`, event);
 		const input = event.target as HTMLInputElement;
 		if (input.files && input.files[0]) {
 			const file = input.files[0];
@@ -184,23 +179,22 @@ let imageLoading = true
 		}
 	}
 
+	function handleFileSelect() {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = 'image/*'; // Specify accepted file types if needed
 
-function handleFileSelect() {
-	const input = document.createElement('input');
-	input.type = 'file';
-	input.accept = 'image/*'; // Specify accepted file types if needed
+		input.onchange = (event: Event) => {
+			console.log(`🚀 ~ handleFileSelect ~ event:`, event);
+			const files = (event.target as HTMLInputElement).files;
+			if (files && files.length > 0) {
+				selectedFile = files[0];
+				console.log('Selected file:', selectedFile.name);
+			}
+		};
 
-	input.onchange = (event: Event) => {
-		console.log(`🚀 ~ handleFileSelect ~ event:`, event)
-		const files = (event.target as HTMLInputElement).files;
-		if (files && files.length > 0) {
-			selectedFile = files[0];
-			console.log('Selected file:', selectedFile.name);
-		}
-	};
-
-	input.click();
-}
+		input.click();
+	}
 </script>
 
 <Card class="mx-auto w-full max-w-3xl">

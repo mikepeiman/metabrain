@@ -25,6 +25,9 @@ export const currentUser = createCurrentUser();
 function createCurrentUserProfile() {
     const { subscribe, set } = writable(null);
 
+    // Initial load
+    refreshUserProfile();
+
     return {
         subscribe,
         set,
@@ -47,6 +50,30 @@ function createCurrentUserProfile() {
     };
 }
 
+export async function refreshAuth() {
+    try {
+        if (pb.authStore.isValid) {
+            await pb.collection('users').authRefresh();
+        } else {
+            console.log('Auth token is not valid, skipping refresh');
+            return false;
+        }
+        await refreshUserProfile();
+        return true;
+    } catch (err) {
+        console.error('Failed to refresh authentication:', err);
+        if (err instanceof Error) {
+            console.error('Error message:', err.message);
+            console.error('Error stack:', err.stack);
+        }
+        if (err.response) {
+            console.error('Response status:', err.response.status);
+            console.error('Response data:', err.response.data);
+        }
+        // Handle authentication failure (e.g., redirect to login)
+        return false;
+    }
+}
 export const currentUserProfile = createCurrentUserProfile();
 
 // Update currentUser store when auth state changes
@@ -69,6 +96,14 @@ async function refreshUserProfile() {
             currentUserProfile.set(profile);
         } catch (err) {
             console.error('Failed to fetch user profile:', err);
+            if (err instanceof Error) {
+                console.error('Error message:', err.message);
+                console.error('Error stack:', err.stack);
+            }
+            if (err.response) {
+                console.error('Response status:', err.response.status);
+                console.error('Response data:', err.response.data);
+            }
             currentUserProfile.set(null);
         }
     } else {
