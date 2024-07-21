@@ -251,7 +251,7 @@
 							class="bg-red-500 absolute right-2 top-2 rounded-full p-1 text-white"
 							on:click|stopPropagation={() => removeImage('avatar')}
 						>
-							<X size={20} />
+							<IconX size={20} />
 						</button>
 					{:else}
 						<p class="absolute inset-0 flex items-center justify-center">

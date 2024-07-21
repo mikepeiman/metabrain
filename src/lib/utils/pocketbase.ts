@@ -92,7 +92,7 @@ async function refreshUserProfile() {
     const user = pb.authStore.model;
     if (user) {
         try {
-            const profile = await pb.collection('users').getOne(user.id);
+            const profile = await pb.collection('users').getOne(user.id, { requestKey: null });
             currentUserProfile.set(profile);
         } catch (err) {
             console.error('Failed to fetch user profile:', err);
