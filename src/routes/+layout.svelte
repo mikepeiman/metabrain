@@ -4,10 +4,13 @@
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import MambaHeader from '$lib/components/MambaHeader.svelte';
+	import SideMenuLeft from '$components/SideMenuLeft.svelte';
 </script>
 
 <CommandPalette />
 <MambaHeader />
+
+<SideMenuLeft />
 <div
 	class="bg-zinc-100 flex min-h-screen w-full items-center justify-center text-white dark:bg-black"
 >

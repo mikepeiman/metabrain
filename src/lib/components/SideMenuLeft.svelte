@@ -29,14 +29,14 @@
   }
 </script>
 
-<aside on:click={toggleSidebar} class="fixed inset-y-0 left-0 z-20 flex flex-col border-r dark:bg-black bg-black transition-all duration-300 ease-in-out {isExpanded ? 'w-64' : 'w-16'}">
+<aside on:click={toggleSidebar} class="fixed inset-y-0 left-0 z-20 flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-black transition-all duration-300 ease-in-out {isExpanded ? 'w-64' : 'w-16'}">
   <nav class="flex flex-col gap-2 px-2 py-4 flex-grow overflow-y-auto">
     {#each menuItems as item}
       <Tooltip.Root>
         <Tooltip.Trigger asChild let:builder>
           <a
             href={item.href}
-            class="sidebar-item flex items-center rounded-lg text-muted-foreground transition-colors hover:text-foreground hover:bg-accent p-2 w-full h-8"
+            class="sidebar-item flex items-center rounded-lg text-slate-600 dark:text-slate-400 transition-colors hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 p-2 w-full h-8"
             use:builder.action
             {...builder}
           >
@@ -54,13 +54,13 @@
     {/each}
 
     {#if isExpanded}
-      <div class="w-full border-t border-border my-4"></div>
+      <div class="w-full border-t border-slate-200 dark:border-slate-800 my-4"></div>
       <div class="w-full">
-        <h3 class="mb-2 text-sm font-semibold text-foreground px-2">Recent Files</h3>
+        <h3 class="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100 px-2">Recent Files</h3>
         <ul class="space-y-1">
           {#each recentFiles as file}
             <li>
-              <a href={file.href} class=" flex items-center text-sm text-muted-foreground hover:text-foreground p-2 rounded-lg hover:bg-accent">
+              <a href={file.href} class="flex items-center text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                 <div class="w-4 h-4 flex items-center justify-center flex-shrink-0">
                   <IconNotes class="h-4 w-4" />
                 </div>
@@ -78,7 +78,7 @@
       <Tooltip.Trigger asChild let:builder>
         <a
           href="/settings"
-          class="flex items-center rounded-lg text-muted-foreground transition-colors hover:text-foreground hover:bg-accent p-2 w-full"
+          class="flex items-center rounded-lg text-slate-600 dark:text-slate-400 transition-colors hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 p-2 w-full"
           use:builder.action
           {...builder}
         >
@@ -102,21 +102,13 @@
           class="w-9 h-9 rounded-full"
         />
       {:else}
-        <div class="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
-          <span class="text-muted-foreground text-sm">{profile?.firstname?.[0] || 'U'}</span>
+        <div class="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+          <span class="text-slate-600 dark:text-slate-400 text-sm">{profile?.firstname?.[0] || 'U'}</span>
         </div>
       {/if}
       {#if isExpanded}
-        <span class="ml-3 whitespace-nowrap overflow-hidden text-ellipsis text-muted-foreground">{profile?.firstname || 'User'}</span>
+        <span class="ml-3 whitespace-nowrap overflow-hidden text-ellipsis text-slate-600 dark:text-slate-400">{profile?.firstname || 'User'}</span>
       {/if}
     </div>
   </div>
 </aside>
-
-
-<style>
-
-.sidebar-item {
-  background: rgba(255, 255, 255, 0.05);
-}
-</style>
