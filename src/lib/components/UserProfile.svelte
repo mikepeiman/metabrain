@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { pb, currentUser, currentUserProfile } from '$utils/pocketbase';
+	$: profile = $currentUserProfile;
 
 	// Subscribe to the stores
 	$: user = $currentUser;
-	$: profile = $currentUserProfile;
     $: if (profile) updateImagePreviews();
     let avatarPreview: string | null = null;
     let bannerPreview: string | null = null;

@@ -5,7 +5,7 @@
 
 </script>
 
-<div class="flex min-h-screen w-full flex-col bg-muted/40">
+<div class="flex min-h-screen w-full flex-col bg-blue-12">
 	<SideMenuLeft></SideMenuLeft>
 
 	<slot><!-- optional fallback --></slot>
