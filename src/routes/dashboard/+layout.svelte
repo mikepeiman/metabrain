@@ -1,7 +1,7 @@
 <script lang="ts">
 	import DashboardMain from './DashboardMain.svelte';
 	import DashboardHeader from './DashboardHeader.svelte';
-	import SideMenuLeft from './SideMenuLeft.svelte';
+	import SideMenuLeft from '$components/SideMenuLeft.svelte';
 
 </script>
 

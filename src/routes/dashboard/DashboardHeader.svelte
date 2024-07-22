@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SideMenuLeft from './SideMenuLeft.svelte';
+	import SideMenuLeft from '$components/SideMenuLeft.svelte';
 
 	import { ChevronLeft, ChevronRight, Copy, CreditCard, File, Home, LineChart, ListFilter, EllipsisVertical, Package, Package2, PanelLeft, Search, Settings, ShoppingCart, Truck, UsersRound } from 'lucide-svelte';
 
