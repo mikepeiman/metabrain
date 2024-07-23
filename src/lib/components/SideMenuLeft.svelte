@@ -3,15 +3,16 @@
 	import { IconNotes, IconSearch, IconPhoto, IconArrowRightBar } from '@tabler/icons-svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import { pb, currentUser, currentUserProfile } from '$utils/pocketbase';
+  import { onMount } from 'svelte';
 
 	let isExpanded = false;
 
 	const menuItems = [
-		{ href: '#expand', action: 'expandSidebar', icon: IconArrowRightBar, label: 'collapse menu' },
+		{ href: '#', action: 'expandSidebar', icon: IconArrowRightBar, label: 'collapse menu' },
 		{ href: '/', icon: Home, label: 'Home' },
 		{ href: '/notes', icon: IconNotes, label: "Today's Note" },
 		{ href: '/calendar', icon: CalendarDays, label: 'Calendar View' },
-		{ href: '#', icon: IconSearch, label: 'Quick Switcher' },
+		{ href: '#', action: 'openCommandPalette', icon: IconSearch, label: 'Quick Switcher' },
 		{ href: '/dashboard', icon: Layout, label: 'Layouts Dashboard' },
 		{ href: '/gallery', icon: IconPhoto, label: 'Media Gallery' }
 	];
@@ -25,10 +26,31 @@
 	$: profile = $currentUserProfile;
 	$: avatarPreview = profile?.avatar ? pb.getFileUrl(profile, profile.avatar) : null;
 
-	function toggleSidebar(e) {
-		console.log(`🚀 ~ toggleSidebar ~ e:`, e.target);
-		isExpanded = !isExpanded;
-	}
+  onMount(() => {
+    const savedState = localStorage.getItem('sidebarExpanded');
+    if (savedState !== null) {
+      isExpanded = JSON.parse(savedState);
+    }
+  });
+  function toggleSidebar(e) {
+    console.log(`🚀 ~ toggleSidebar ~ e:`, e.target);
+    isExpanded = !isExpanded;
+    localStorage.setItem('sidebarExpanded', JSON.stringify(isExpanded));
+  }
+
+  function triggerCommandPalette() {
+    const keyboardEvent = new KeyboardEvent('keydown', {
+      key: 'k',
+      ctrlKey: true,
+    });
+    document.dispatchEvent(keyboardEvent);
+  }
+
+  function handleItemClick(item) {
+    if (item.action === 'openCommandPalette') {
+      triggerCommandPalette();
+    }
+  }
 </script>
 
 <aside
@@ -46,6 +68,7 @@
 						class="sidebar-item text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex h-8 w-full items-center rounded-lg p-2 transition-colors"
 						use:builder.action
 						{...builder}
+            on:click|stopPropagation={e => handleItemClick(item)}
 					>
 						{#if item.action === 'expandSidebar'}
 							<div
@@ -64,9 +87,10 @@
 								<svelte:component this={item.icon} class="h-5 w-5" />
 							</div>
 						{/if}
+
 						{#if isExpanded}
 							<span
-								on:click={(e) => toggleSidebar(e)}
+
 								class="ml-3 overflow-hidden text-ellipsis whitespace-nowrap">{item.label}</span
 							>
 						{/if}
@@ -111,7 +135,7 @@
 			<Tooltip.Trigger asChild let:builder>
 				<a
 					href="/settings"
-					class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex w-full items-center rounded-lg p-2 transition-colors"
+					class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex w-full items-center justify-center rounded-lg p-2 transition-colors"
 					use:builder.action
 					{...builder}
 				>
