@@ -136,15 +136,15 @@
 			<Tooltip.Trigger asChild let:builder>
 				<a
 					href="/settings"
-					class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex w-full items-center justify-center rounded-lg p-2 transition-colors"
+					class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex w-full items-center justify-start rounded-lg p-2 transition-colors"
 					use:builder.action
 					{...builder}
 				>
-					<div class="flex h-5 w-5 flex-shrink-0 items-center justify-center">
+					<div class="flex  h-5 w-5 flex-shrink-0 items-center justify-center ml-2">
 						<Settings class="h-5 w-5" />
 					</div>
 					{#if isExpanded}
-						<span class="ml-3 overflow-hidden text-ellipsis whitespace-nowrap">Settings</span>
+						<span class="ml-5 overflow-hidden text-ellipsis whitespace-nowrap">Settings</span>
 					{/if}
 					<span class="sr-only">Settings</span>
 				</a>
@@ -167,7 +167,7 @@
 			{#if isExpanded}
 				<span
 					class="text-slate-600 dark:text-slate-400 ml-3 overflow-hidden text-ellipsis whitespace-nowrap"
-					>{profile?.firstname || 'User'}</span
+					>{profile?.username || 'User'}</span
 				>
 			{/if}
 		</div>
