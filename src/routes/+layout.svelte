@@ -12,14 +12,18 @@
 
 <SideMenuLeft />
 <div
-	class="bg-zinc-100 flex min-h-screen w-full items-center justify-center text-white dark:bg-black"
+	id="app"
+	class="absolute bg-zinc-100 flex min-h-screen w-full  text-white dark:bg-black"
 >
 	<Toaster />
 	<slot></slot>
 </div>
 
 <style>
-	/* :global(body) {
-		min-height: 100vh;
-	} */
+	#app {
+		left: var(--sidebar-width);
+		width: calc(100% - var(--sidebar-width));
+		height: 100%;
+		transition: all 0.3s ease;
+	}
 </style>

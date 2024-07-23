@@ -3,10 +3,12 @@
 	import { IconNotes, IconSearch, IconPhoto, IconArrowRightBar } from '@tabler/icons-svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import { pb, currentUser, currentUserProfile } from '$utils/pocketbase';
-  import { onMount } from 'svelte';
+	import { onMount } from 'svelte';
 
 	let isExpanded = false;
-
+  $: sidebarWidth = isExpanded ? '14rem' : '4rem';
+  $: console.log(`🚀 ~ sidebarWidth:`, sidebarWidth)
+  $:  document.documentElement.style.setProperty('--sidebar-width', sidebarWidth);
 	const menuItems = [
 		{ href: '#', action: 'expandSidebar', icon: IconArrowRightBar, label: 'collapse menu' },
 		{ href: '/', icon: Home, label: 'Home' },
@@ -26,37 +28,37 @@
 	$: profile = $currentUserProfile;
 	$: avatarPreview = profile?.avatar ? pb.getFileUrl(profile, profile.avatar) : null;
 
-  onMount(() => {
-    const savedState = localStorage.getItem('sidebarExpanded');
-    if (savedState !== null) {
-      isExpanded = JSON.parse(savedState);
-    }
-  });
-  function toggleSidebar(e) {
-    console.log(`🚀 ~ toggleSidebar ~ e:`, e.target);
-    isExpanded = !isExpanded;
-    localStorage.setItem('sidebarExpanded', JSON.stringify(isExpanded));
-  }
+	onMount(() => {
+		const savedState = localStorage.getItem('sidebarExpanded');
+		if (savedState !== null) {
+			isExpanded = JSON.parse(savedState);
+		}
+	});
+	function toggleSidebar(e) {
+		console.log(`🚀 ~ toggleSidebar ~ e:`, e.target);
+		isExpanded = !isExpanded;
+		localStorage.setItem('sidebarExpanded', JSON.stringify(isExpanded));
+	}
 
-  function triggerCommandPalette() {
-    const keyboardEvent = new KeyboardEvent('keydown', {
-      key: 'k',
-      ctrlKey: true,
-    });
-    document.dispatchEvent(keyboardEvent);
-  }
+	function triggerCommandPalette() {
+		const keyboardEvent = new KeyboardEvent('keydown', {
+			key: 'k',
+			ctrlKey: true
+		});
+		document.dispatchEvent(keyboardEvent);
+	}
 
-  function handleItemClick(item) {
-    if (item.action === 'openCommandPalette') {
-      triggerCommandPalette();
-    }
-  }
+	function handleItemClick(item) {
+		if (item.action === 'openCommandPalette') {
+			triggerCommandPalette();
+		}
+	}
 </script>
 
 <aside
 	class="border-slate-200 dark:border-slate-800 fixed inset-y-0 left-0 z-20 flex flex-col border-r bg-white transition-all duration-300 ease-in-out dark:bg-black {isExpanded
-		? 'w-64'
-		: 'w-16'}"
+		? 'w-[14rem]'
+		: 'w-[4rem]'}"
 >
 	<nav class="flex flex-col gap-2 overflow-y-auto px-2 py-4">
 		{#each menuItems as item}
@@ -68,7 +70,7 @@
 						class="sidebar-item text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex h-8 w-full items-center rounded-lg p-2 transition-colors"
 						use:builder.action
 						{...builder}
-            on:click|stopPropagation={e => handleItemClick(item)}
+						on:click|stopPropagation={(e) => handleItemClick(item)}
 					>
 						{#if item.action === 'expandSidebar'}
 							<div
@@ -89,10 +91,7 @@
 						{/if}
 
 						{#if isExpanded}
-							<span
-
-								class="ml-3 overflow-hidden text-ellipsis whitespace-nowrap">{item.label}</span
-							>
+							<span class="ml-3 overflow-hidden text-ellipsis whitespace-nowrap">{item.label}</span>
 						{/if}
 						<span class="sr-only">{item.label}</span>
 					</a>
@@ -102,7 +101,7 @@
 		{/each}
 
 		{#if isExpanded}
-			<div class="border-slate-200 dark:border-slate-800 my-4 w-full border-t"></div>
+			<div class="border-slate-200 dark:border-slate-800 my-4 w-full border-t "></div>
 			<div class="w-full">
 				<h3 class="text-slate-900 dark:text-slate-100 mb-2 px-2 text-sm font-semibold">
 					Recent Files
@@ -130,7 +129,9 @@
 		on:click={(e) => toggleSidebar(e)}
 		class="border-slate-200 dark:border-slate-800 flex flex-1 flex-grow border-t"
 	></div>
-	<div class="mt-auto flex flex-col gap-2 px-2 py-4 border-slate-200 dark:border-slate-800 border-t">
+	<div
+		class="border-slate-200 dark:border-slate-800 mt-auto flex flex-col gap-2 border-t px-2 py-4"
+	>
 		<Tooltip.Root>
 			<Tooltip.Trigger asChild let:builder>
 				<a
@@ -172,3 +173,7 @@
 		</div>
 	</div>
 </aside>
+
+<style>
+
+</style>

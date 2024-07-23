@@ -11,6 +11,6 @@
 	});
 </script>
 
-<div class="mx-auto mt-8 w-full max-w-3xl px-4">
+<div class="mx-auto mt-8 w-auto max-w-3xl px-4">
 	<UserProfile  />
 </div>
