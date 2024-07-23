@@ -1,114 +1,150 @@
 <script lang="ts">
-  import { Home, CalendarDays, Layout, Settings, User } from 'lucide-svelte';
-  import { IconNotes, IconSearch, IconPhoto } from '@tabler/icons-svelte';
-  import * as Tooltip from "$lib/components/ui/tooltip/index.js";
-  import { pb, currentUser, currentUserProfile } from '$utils/pocketbase';
+	import { Home, CalendarDays, Layout, Settings, User } from 'lucide-svelte';
+	import { IconNotes, IconSearch, IconPhoto, IconArrowRightBar } from '@tabler/icons-svelte';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import { pb, currentUser, currentUserProfile } from '$utils/pocketbase';
 
-  let isExpanded = false;
+	let isExpanded = false;
 
-  const menuItems = [
-    { href: '/', icon: Home, label: 'Home' },
-    { href: '/today', icon: IconNotes, label: "Today's Note" },
-    { href: '/calendar', icon: CalendarDays, label: 'Calendar View' },
-    { href: '/command', icon: IconSearch, label: 'Quick Switcher' },
-    { href: '/dashboard', icon: Layout, label: 'Layouts Dashboard' },
-    { href: '/gallery', icon: IconPhoto, label: 'Media Gallery' },
-  ];
+	const menuItems = [
+		{ href: '#expand', action: 'expandSidebar', icon: IconArrowRightBar, label: 'collapse menu' },
+		{ href: '/', icon: Home, label: 'Home' },
+		{ href: '/notes', icon: IconNotes, label: "Today's Note" },
+		{ href: '/calendar', icon: CalendarDays, label: 'Calendar View' },
+		{ href: '#', icon: IconSearch, label: 'Quick Switcher' },
+		{ href: '/dashboard', icon: Layout, label: 'Layouts Dashboard' },
+		{ href: '/gallery', icon: IconPhoto, label: 'Media Gallery' }
+	];
 
-  const recentFiles = [
-    { name: 'Document 1', href: '/file1' },
-    { name: 'Image 2', href: '/file2' },
-    { name: 'Note 3', href: '/file3' },
-  ];
+	const recentFiles = [
+		{ name: 'Document 1', href: '/file1' },
+		{ name: 'Image 2', href: '/file2' },
+		{ name: 'Note 3', href: '/file3' }
+	];
 
-  $: profile = $currentUserProfile;
-  $: avatarPreview = profile?.avatar ? pb.getFileUrl(profile, profile.avatar) : null;
+	$: profile = $currentUserProfile;
+	$: avatarPreview = profile?.avatar ? pb.getFileUrl(profile, profile.avatar) : null;
 
-  function toggleSidebar() {
-    isExpanded = !isExpanded;
-  }
+	function toggleSidebar(e) {
+		console.log(`🚀 ~ toggleSidebar ~ e:`, e.target);
+		isExpanded = !isExpanded;
+	}
 </script>
 
-<aside on:click={toggleSidebar} class="fixed inset-y-0 left-0 z-20 flex flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-black transition-all duration-300 ease-in-out {isExpanded ? 'w-64' : 'w-16'}">
-  <nav class="flex flex-col gap-2 px-2 py-4 flex-grow overflow-y-auto">
-    {#each menuItems as item}
-      <Tooltip.Root>
-        <Tooltip.Trigger asChild let:builder>
-          <a
-            href={item.href}
-            class="sidebar-item flex items-center rounded-lg text-slate-600 dark:text-slate-400 transition-colors hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 p-2 w-full h-8"
-            use:builder.action
-            {...builder}
-          >
-            <div class="w-5 h-5 flex items-center justify-center flex-shrink-0">
-              <svelte:component this={item.icon} class="h-5 w-5" />
-            </div>
-            {#if isExpanded}
-              <span class="ml-3 whitespace-nowrap overflow-hidden text-ellipsis">{item.label}</span>
-            {/if}
-            <span class="sr-only">{item.label}</span>
-          </a>
-        </Tooltip.Trigger>
-        <Tooltip.Content side="right">{item.label}</Tooltip.Content>
-      </Tooltip.Root>
-    {/each}
+<aside
+	class="border-slate-200 dark:border-slate-800 fixed inset-y-0 left-0 z-20 flex flex-col border-r bg-white transition-all duration-300 ease-in-out dark:bg-black {isExpanded
+		? 'w-64'
+		: 'w-16'}"
+>
+	<nav class="flex flex-col gap-2 overflow-y-auto px-2 py-4">
+		{#each menuItems as item}
+			<Tooltip.Root>
+				<Tooltip.Trigger asChild let:builder>
+					<a
+						href={item.href}
+						rel="prefetch"
+						class="sidebar-item text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex h-8 w-full items-center rounded-lg p-2 transition-colors"
+						use:builder.action
+						{...builder}
+					>
+						{#if item.action === 'expandSidebar'}
+							<div
+								on:click={(e) => toggleSidebar(e)}
+								class="flex h-5 w-5 flex-shrink-0 items-center justify-center"
+							>
+								<svelte:component
+									this={item.icon}
+									class="h-5 w-5 transition-transform duration-500 {isExpanded
+										? 'rotate-180 transform'
+										: ''}"
+								/>
+							</div>
+						{:else}
+							<div class="flex h-5 w-5 flex-shrink-0 items-center justify-center">
+								<svelte:component this={item.icon} class="h-5 w-5" />
+							</div>
+						{/if}
+						{#if isExpanded}
+							<span
+								on:click={(e) => toggleSidebar(e)}
+								class="ml-3 overflow-hidden text-ellipsis whitespace-nowrap">{item.label}</span
+							>
+						{/if}
+						<span class="sr-only">{item.label}</span>
+					</a>
+				</Tooltip.Trigger>
+				<Tooltip.Content side="right">{item.label}</Tooltip.Content>
+			</Tooltip.Root>
+		{/each}
 
-    {#if isExpanded}
-      <div class="w-full border-t border-slate-200 dark:border-slate-800 my-4"></div>
-      <div class="w-full">
-        <h3 class="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100 px-2">Recent Files</h3>
-        <ul class="space-y-1">
-          {#each recentFiles as file}
-            <li>
-              <a href={file.href} class="flex items-center text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
-                <div class="w-4 h-4 flex items-center justify-center flex-shrink-0">
-                  <IconNotes class="h-4 w-4" />
-                </div>
-                <span class="ml-3 whitespace-nowrap overflow-hidden text-ellipsis">{file.name}</span>
-              </a>
-            </li>
-          {/each}
-        </ul>
-      </div>
-    {/if}
-  </nav>
+		{#if isExpanded}
+			<div class="border-slate-200 dark:border-slate-800 my-4 w-full border-t"></div>
+			<div class="w-full">
+				<h3 class="text-slate-900 dark:text-slate-100 mb-2 px-2 text-sm font-semibold">
+					Recent Files
+				</h3>
+				<ul class="space-y-1">
+					{#each recentFiles as file}
+						<li>
+							<a
+								href={file.href}
+								class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center rounded-lg p-2 text-sm"
+							>
+								<div class="flex h-4 w-4 flex-shrink-0 items-center justify-center">
+									<IconNotes class="h-4 w-4" />
+								</div>
+								<span class="ml-3 overflow-hidden text-ellipsis whitespace-nowrap">{file.name}</span
+								>
+							</a>
+						</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
+	</nav>
+	<div
+		on:click={(e) => toggleSidebar(e)}
+		class="border-slate-200 dark:border-slate-800 flex flex-1 flex-grow border-t"
+	></div>
+	<div class="mt-auto flex flex-col gap-2 px-2 py-4 border-slate-200 dark:border-slate-800 border-t">
+		<Tooltip.Root>
+			<Tooltip.Trigger asChild let:builder>
+				<a
+					href="/settings"
+					class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex w-full items-center rounded-lg p-2 transition-colors"
+					use:builder.action
+					{...builder}
+				>
+					<div class="flex h-5 w-5 flex-shrink-0 items-center justify-center">
+						<Settings class="h-5 w-5" />
+					</div>
+					{#if isExpanded}
+						<span class="ml-3 overflow-hidden text-ellipsis whitespace-nowrap">Settings</span>
+					{/if}
+					<span class="sr-only">Settings</span>
+				</a>
+			</Tooltip.Trigger>
+			<Tooltip.Content side="right">Settings</Tooltip.Content>
+		</Tooltip.Root>
 
-  <div class="mt-auto flex flex-col gap-2 px-2 py-4">
-    <Tooltip.Root>
-      <Tooltip.Trigger asChild let:builder>
-        <a
-          href="/settings"
-          class="flex items-center rounded-lg text-slate-600 dark:text-slate-400 transition-colors hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 p-2 w-full"
-          use:builder.action
-          {...builder}
-        >
-          <div class="w-5 h-5 flex items-center justify-center flex-shrink-0">
-            <Settings class="h-5 w-5" />
-          </div>
-          {#if isExpanded}
-            <span class="ml-3 whitespace-nowrap overflow-hidden text-ellipsis">Settings</span>
-          {/if}
-          <span class="sr-only">Settings</span>
-        </a>
-      </Tooltip.Trigger>
-      <Tooltip.Content side="right">Settings</Tooltip.Content>
-    </Tooltip.Root>
-
-    <div class="flex items-center p-2">
-      {#if avatarPreview}
-        <img
-          src={avatarPreview}
-          alt="User Avatar"
-          class="w-9 h-9 rounded-full"
-        />
-      {:else}
-        <div class="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-          <span class="text-slate-600 dark:text-slate-400 text-sm">{profile?.firstname?.[0] || 'U'}</span>
-        </div>
-      {/if}
-      {#if isExpanded}
-        <span class="ml-3 whitespace-nowrap overflow-hidden text-ellipsis text-slate-600 dark:text-slate-400">{profile?.firstname || 'User'}</span>
-      {/if}
-    </div>
-  </div>
+		<div class="flex items-center p-2">
+			{#if avatarPreview}
+				<img src={avatarPreview} alt="User Avatar" class="h-9 w-9 rounded-full" />
+			{:else}
+				<div
+					class="bg-slate-200 dark:bg-slate-700 flex h-9 w-9 items-center justify-center rounded-full"
+				>
+					<span class="text-slate-600 dark:text-slate-400 text-sm"
+						>{profile?.firstname?.[0] || 'U'}</span
+					>
+				</div>
+			{/if}
+			{#if isExpanded}
+				<span
+					class="text-slate-600 dark:text-slate-400 ml-3 overflow-hidden text-ellipsis whitespace-nowrap"
+					>{profile?.firstname || 'User'}</span
+				>
+			{/if}
+		</div>
+	</div>
 </aside>
