@@ -61,6 +61,7 @@
 	import '@milkdown/theme-nord/style.css';
 	import { listener, listenerCtx } from '@milkdown/plugin-listener';
 	import { setAttr, callCommand } from '@milkdown/utils';
+	import { gfm } from '@milkdown/preset-gfm';
 	import { format, parseISO } from 'date-fns';
 	import { goto } from '$app/navigation';
 	import { debounce } from 'lodash-es';
@@ -109,6 +110,7 @@
 			})
 			.use(nord)
 			.use(commonmark)
+			.use(gfm)
 			.use(clipboard)
 			.use(history)
 			.use(listener)
@@ -383,7 +385,7 @@
 		'backlink:open': [{ modifiers: [], key: 'F3' }],
 		'app:go-back': [{ modifiers: ['Mod'], key: ',' }],
 		'app:go-forward': [{ modifiers: ['Mod'], key: '.' }],
-		'editor:toggle-checklist-status':[{ modifiers: ['Mod'], key: 'l' }],
+		'editor:toggle-checklist-status': [{ modifiers: ['Mod'], key: 'l' }],
 		'outline:open': [{ modifiers: ['Alt'], key: 'O' }],
 		'obsidian-checklist-plugin:show-checklist-view': [{ modifiers: ['Alt'], key: 'C' }],
 		'obsidian-excalidraw-plugin:insert-link-to-element': [],
@@ -670,73 +672,72 @@
 	}
 
 	function cycleListChecklist() {
-  if (!editor) {
-    console.log("Editor not initialized");
-    return;
-  }
+		const selection = window.getSelection();
+		if (!selection.rangeCount) return;
 
-  editor.action((ctx) => {
-    const view = ctx.get(editorViewCtx);
-    if (!view) {
-      console.log("Editor view not found");
-      return;
-    }
+		const range = selection.getRangeAt(0);
+		let startNode = range.startContainer;
 
-    const { state, dispatch } = view;
-    const { selection, doc } = state;
-    const { $from } = selection;
+		// If the startNode is a text node, use its parent element
+		if (startNode.nodeType === Node.TEXT_NODE) {
+			startNode = startNode.parentNode;
+		}
 
-    const node = doc.nodeAt($from.pos);
-    if (!node) {
-      console.log("No node at current position");
-      return;
-    }
+		// Find the closest list item or block element
+		let listItem = null;
+		let blockElement = null;
 
-    console.log("Current node type:", node.type.name);
+		let currentNode = startNode;
+		while (currentNode) {
+			if (currentNode.nodeType === Node.ELEMENT_NODE) {
+				if (currentNode.tagName === 'LI') {
+					listItem = currentNode;
+					break;
+				} else if (currentNode.tagName === 'P' || currentNode.tagName === 'DIV') {
+					blockElement = currentNode;
+					break;
+				}
+			}
+			currentNode = currentNode.parentNode;
+		}
 
-    if (node.type === listItemSchema.type) {
-      console.log("Converting to task list item");
-      const taskListItemType = state.schema.nodes.taskListItem;
-      if (taskListItemType) {
-        dispatch(state.tr.setNodeMarkup($from.pos, taskListItemType, { checked: false }));
-      } else {
-        console.log("taskListItem type not found in schema");
-      }
-    } else if (node.type.name === 'taskListItem') {
-      console.log("Handling task list item");
-      if (!node.attrs.checked) {
-        console.log("Checking task list item");
-        dispatch(state.tr.setNodeMarkup($from.pos, null, { checked: true }));
-        const strikeType = state.schema.marks.strike;
-        if (strikeType) {
-          dispatch(state.tr.addMark($from.pos, $from.pos + node.nodeSize, strikeType.create()));
-        } else {
-          console.log("Strike mark not found in schema");
-        }
-      } else {
-        console.log("Converting back to regular list item");
-        dispatch(state.tr.setNodeMarkup($from.pos, listItemSchema.type));
-        const strikeType = state.schema.marks.strike;
-        if (strikeType) {
-          dispatch(state.tr.removeMark($from.pos, $from.pos + node.nodeSize, strikeType));
-        }
-      }
-    } else {
-      console.log("Creating new unordered list item");
-      const bulletList = bulletListSchema.type.create();
-      const listItem = listItemSchema.type.create();
-      dispatch(state.tr
-        .insert($from.pos, bulletList)
-        .insert($from.pos + 1, listItem)
-        .delete($from.pos + 2, $from.pos + 2 + node.nodeSize)
-      );
-    }
+		if (blockElement && !listItem) {
+			// If in a block element (not a list item), convert it to a list item
+			const newList = document.createElement('ul');
+			const newItem = document.createElement('li');
+			newItem.innerHTML = blockElement.innerHTML;
+			newList.appendChild(newItem);
+			blockElement.replaceWith(newList);
+			listItem = newItem;
+		}
 
-    content = view.state.doc.textContent;
-    handleInput();
-    console.log("Content updated:", content);
-  });
-}
+		if (listItem) {
+			// If inside a list item, check for the presence of a checkbox
+			const checkbox = listItem.querySelector('input[type="checkbox"]');
+
+			if (!checkbox) {
+				// If no checkbox exists, add an unchecked checkbox after the list marker
+				const newCheckbox = document.createElement('input');
+				newCheckbox.type = 'checkbox';
+				const firstChild = listItem.firstChild;
+				if (firstChild) {
+					listItem.insertBefore(newCheckbox, firstChild.nextSibling);
+				} else {
+					listItem.appendChild(newCheckbox);
+				}
+			} else {
+				// If a checkbox exists, toggle its state or remove it
+				if (!checkbox.checked) {
+					checkbox.checked = true;
+				} else {
+					checkbox.remove();
+				}
+			}
+		}
+
+		// Ensure the changes are reflected in the editor's content
+		handleInput();
+	}
 
 	function toggleLeftSidebar() {
 		// This would require a custom implementation for your sidebar system

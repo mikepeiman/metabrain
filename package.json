@@ -40,6 +40,7 @@
 		"@milkdown/plugin-history": "^7.4.0",
 		"@milkdown/plugin-listener": "^7.4.0",
 		"@milkdown/preset-commonmark": "^7.4.0",
+		"@milkdown/preset-gfm": "^7.4.0",
 		"@milkdown/theme-nord": "^7.4.0",
 		"@milkdown/utils": "^7.4.0",
 		"@radix-ui/colors": "^3.0.0",
