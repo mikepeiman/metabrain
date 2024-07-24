@@ -1,133 +1,291 @@
+
 /* milkdown-styles.css using Radix color variables with correct format */
 
 .milkdown {
-    line-height: 1.6;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  }
-  
-  .milkdown h1, .milkdown h2, .milkdown h3, .milkdown h4, .milkdown h5, .milkdown h6 {
-    margin-top: 1.5em;
-    margin-bottom: 0.5em;
-    font-weight: bold;
-    line-height: 1.2;
-  }
-  
-  .milkdown h1 {
-    font-size: 2.5em;
-    background: linear-gradient(45deg, var(--tomato-9), var(--amber-9));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  .milkdown h2 {
-    font-size: 2em;
-    background: linear-gradient(45deg, var(--amber-9), var(--green-9));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  .milkdown h3 {
-    font-size: 1.75em;
-    background: linear-gradient(45deg, var(--green-9), var(--cyan-9));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  .milkdown h4 {
-    font-size: 1.5em;
-    background: linear-gradient(45deg, var(--cyan-9), var(--blue-9));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  .milkdown h5 {
-    font-size: 1.25em;
-    background: linear-gradient(45deg, var(--blue-9), var(--violet-9));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  .milkdown h6 {
-    font-size: 1em;
-    background: linear-gradient(45deg, var(--violet-9), var(--pink-9));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  .milkdown p {
-    margin-bottom: 1em;
-  }
-  
-  .milkdown strong {
-    font-weight: bold;
-  }
-  
-  .milkdown em {
-    font-style: italic;
-  }
-  
-  .milkdown blockquote {
-    margin: 1em 0;
-    padding-left: 1em;
-    border-left: 4px solid var(--slate-7);
-    font-style: italic;
-  }
-  
-  .milkdown a {
-    color: var(--blue-9);
-    text-decoration: none;
-  }
-  
-  .milkdown a:hover {
-    text-decoration: underline;
-  }
-  
-  .milkdown ul, .milkdown ol {
-    margin: 1em 0;
-    padding-left: 2em;
-  }
-  
-  .milkdown li {
-    margin-bottom: 0.5em;
-  }
-  
-  .milkdown code {
-    font-family: 'Courier New', Courier, monospace;
-    background-color: var(--slate-3);
-    padding: 0.2em 0.4em;
-    border-radius: 3px;
-  }
-  
-  .milkdown pre {
-    background-color: var(--slate-3);
-    padding: 1em;
-    border-radius: 5px;
-    overflow-x: auto;
-  }
-  
-  .milkdown pre code {
-    background-color: transparent;
-    padding: 0;
-  }
-  
-  .milkdown hr {
-    border: none;
-    border-top: 1px solid var(--slate-7);
-    margin: 2em 0;
-  }
-  
-  .milkdown table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 1em 0;
-  }
-  
-  .milkdown th, .milkdown td {
-    border: 1px solid var(--slate-7);
-    padding: 0.5em;
-  }
-  
-  .milkdown th {
-    background-color: var(--slate-3);
-    font-weight: bold;
-  }
+  line-height: 1.6;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: var(--slate-12);
+  background-color: var(--slate-1);
+  padding: 1em;
+}
+
+/* Headings */
+.milkdown h1, .milkdown h2, .milkdown h3, .milkdown h4, .milkdown h5, .milkdown h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.milkdown h1 { font-size: 2.5em; color: var(--tomato-9); }
+.milkdown h2 { font-size: 2em; color: var(--red-9); }
+.milkdown h3 { font-size: 1.75em; color: var(--crimson-9); }
+.milkdown h4 { font-size: 1.5em; color: var(--pink-9); }
+.milkdown h5 { font-size: 1.25em; color: var(--plum-9); }
+.milkdown h6 { font-size: 1em; color: var(--purple-9); }
+
+/* Paragraphs */
+.milkdown p {
+  margin-bottom: 1em;
+}
+
+/* Text styling */
+.milkdown strong {
+  font-weight: 600;
+  color: var(--slate-12);
+}
+
+.milkdown em {
+  font-style: italic;
+  color: var(--slate-11);
+}
+
+.milkdown del {
+  text-decoration: line-through;
+  color: var(--slate-8);
+}
+
+/* Blockquotes */
+.milkdown blockquote {
+  margin: 1em 0;
+  padding: 0.5em 1em;
+  border-left: 4px solid var(--violet-6);
+  background-color: var(--violet-2);
+  font-style: italic;
+  color: var(--violet-11);
+}
+
+/* Links */
+.milkdown a {
+  color: var(--blue-9);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.milkdown a:hover {
+  color: var(--blue-10);
+  text-decoration: underline;
+}
+
+/* Lists */
+.milkdown ul, .milkdown ol {
+  margin: 1em 0;
+  padding-left: 2em;
+}
+
+.milkdown li {
+  margin-bottom: 0.5em;
+}
+
+.milkdown ul > li {
+  list-style-type: none;
+  position: relative;
+}
+
+.milkdown ul > li::before {
+  content: '•';
+  position: absolute;
+  left: -1.5em;
+  color: var(--indigo-9);
+}
+
+.milkdown ol {
+  counter-reset: list-counter;
+}
+
+.milkdown ol > li {
+  list-style-type: none;
+  counter-increment: list-counter;
+  position: relative;
+}
+
+.milkdown ol > li::before {
+  content: counter(list-counter) ".";
+  position: absolute;
+  left: -2em;
+  color: var(--cyan-9);
+  font-weight: 600;
+}
+
+/* Code */
+.milkdown code {
+  font-family: 'Fira Code', 'Courier New', Courier, monospace;
+  background-color: var(--slate-3);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.milkdown pre {
+  background-color: var(--slate-2);
+  padding: 1em;
+  border-radius: 5px;
+  overflow-x: auto;
+  border: 1px solid var(--slate-6);
+}
+
+.milkdown pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: 0.9em;
+}
+
+/* Horizontal Rule */
+.milkdown hr {
+  border: none;
+  border-top: 1px solid var(--slate-6);
+  margin: 2em 0;
+}
+
+/* Tables */
+.milkdown table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  margin: 1em 0;
+  border: 1px solid var(--slate-6);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.milkdown th, .milkdown td {
+  border: 1px solid var(--slate-6);
+  padding: 0.75em;
+}
+
+.milkdown th {
+  background-color: var(--slate-3);
+  font-weight: 600;
+  text-align: left;
+}
+
+.milkdown tr:nth-child(even) {
+  background-color: var(--slate-2);
+}
+
+/* Hashtags as tags/badges */
+.milkdown .hashtag {
+  display: inline-block;
+  background-color: var(--blue-4);
+  color: var(--blue-11);
+  padding: 0.2em 0.6em;
+  border-radius: 9999px;
+  font-size: 0.9em;
+  font-weight: 500;
+  margin: 0 0.2em;
+  transition: background-color 0.2s ease;
+}
+
+.milkdown .hashtag:hover {
+  background-color: var(--blue-5);
+}
+
+/* Task Lists */
+.milkdown .task-list-item {
+  list-style-type: none;
+}
+
+.milkdown .task-list-item::before {
+  content: none;
+}
+
+.milkdown .task-list-item input[type="checkbox"] {
+  margin-right: 0.5em;
+}
+
+/* Footnotes */
+.milkdown .footnote {
+  font-size: 0.9em;
+  color: var(--slate-11);
+}
+
+.milkdown .footnote-ref {
+  vertical-align: super;
+  font-size: 0.8em;
+}
+
+/* Image captions */
+.milkdown figure {
+  margin: 1em 0;
+}
+
+.milkdown figcaption {
+  text-align: center;
+  font-size: 0.9em;
+  color: var(--slate-11);
+  margin-top: 0.5em;
+}
+
+.milkdown {
+  line-height: 1.6;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  color: var(--slate-12);
+  background-color: var(--slate-1);
+  padding: 1em;
+}
+
+/* ... (rest of the CSS) ... */
+
+/* Additional styles for checkboxes */
+.milkdown .task-list-item input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.2em;
+  height: 1.2em;
+  border: 2px solid var(--slate-7);
+  border-radius: 0.2em;
+  margin-right: 0.5em;
+  vertical-align: middle;
+  position: relative;
+  cursor: pointer;
+}
+
+.milkdown .task-list-item input[type="checkbox"]:checked {
+  background-color: var(--green-9);
+  border-color: var(--green-9);
+}
+
+.milkdown .task-list-item input[type="checkbox"]:checked::after {
+  content: '✓';
+  font-size: 1em;
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Styles for tags */
+.milkdown .tag {
+  display: inline-block;
+  background-color: var(--blue-4);
+  color: var(--blue-11);
+  padding: 0.2em 0.6em;
+  border-radius: 9999px;
+  font-size: 0.9em;
+  font-weight: 500;
+  margin: 0 0.2em;
+  transition: background-color 0.2s ease;
+}
+
+.milkdown .tag:hover {
+  background-color: var(--blue-5);
+}
+
+/* 
+This CSS provides comprehensive styling for Milkdown, including:
+
+1. Modern typography using the Inter font (you'll need to include this font in your project)
+2. Styled headings with different colors
+3. Unordered and ordered lists with custom bullets and numbering
+4. Hashtags styled as tags/badges
+5. Enhanced blockquotes
+6. Styled code blocks and inline code
+7. Improved table design
+8. Task list styling
+9. Footnote styling
+10. Image caption styling
+
+To use hashtags as tags/badges, you might need to add some custom JavaScript to detect and wrap hashtags in a span with the class "hashtag".
+
+Remember to include the Radix Color variables in your project for this CSS to work correctly. You can customize the colors and styles further to match your desired theme more closely. */

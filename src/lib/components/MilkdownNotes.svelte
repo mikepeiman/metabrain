@@ -11,14 +11,6 @@
 	// 9. Add undo/redo
 	// 10. add keyuboard shortcuts for styling
 
-	import { onMount, afterUpdate } from 'svelte';
-	import { pb, currentUser } from '$utils/pocketbase';
-	import * as Resizable from '$lib/components/ui/resizable';
-	import * as Select from '$lib/components/ui/select';
-	import { Button } from '$lib/components/ui/button';
-	import { toast } from 'svelte-sonner';
-	import { get } from 'svelte/store';
-	import * as ContextMenu from '$lib/components/ui/context-menu/index.js';
 	import {
 		IconExternalLink,
 		IconArrowRight,
@@ -39,6 +31,14 @@
 		IconChevronDown,
 		IconTrash
 	} from '@tabler/icons-svelte';
+	import { onMount, afterUpdate } from 'svelte';
+	import { pb, currentUser } from '$utils/pocketbase';
+	import * as Resizable from '$lib/components/ui/resizable';
+	import * as Select from '$lib/components/ui/select';
+	import { Button } from '$lib/components/ui/button';
+	import { toast } from 'svelte-sonner';
+	import { get } from 'svelte/store';
+	import * as ContextMenu from '$lib/components/ui/context-menu/index.js';
 	import {
 		Editor,
 		rootCtx,
@@ -49,12 +49,18 @@
 	} from '@milkdown/core';
 	import { clipboard } from '@milkdown/plugin-clipboard';
 
-	import { commonmark, headingAttr } from '@milkdown/preset-commonmark';
-	import { history } from '@milkdown/plugin-history';
+	import {
+		commonmark,
+		headingAttr,
+		listItemSchema,
+		bulletListSchema,
+		orderedListSchema
+	} from '@milkdown/preset-commonmark';
+	import { history, undoCommand, redoCommand, historyKeymap } from '@milkdown/plugin-history';
 	import { nord } from '@milkdown/theme-nord';
 	import '@milkdown/theme-nord/style.css';
 	import { listener, listenerCtx } from '@milkdown/plugin-listener';
-	import { setAttr } from '@milkdown/utils';
+	import { setAttr, callCommand } from '@milkdown/utils';
 	import { format, parseISO } from 'date-fns';
 	import { goto } from '$app/navigation';
 	import { debounce } from 'lodash-es';
@@ -76,6 +82,13 @@
 		if (!$currentUser) return goto('/login');
 		await loadNotes();
 		initializeEditor();
+		// Add event listener for keyboard shortcuts
+		window.addEventListener('keydown', handleShortcut);
+
+		return () => {
+			// Clean up event listener on component unmount
+			window.removeEventListener('keydown', handleShortcut);
+		};
 	});
 
 	async function initializeEditor() {
@@ -307,7 +320,7 @@
 	}
 
 	function handleKeydown(event) {
-		console.log(`🚀 ~ handleKeydown ~ event:`, event)
+		console.log(`🚀 ~ handleKeydown ~ event:`, event);
 		if (event.key === 'Enter') {
 			event.preventDefault(); // Prevent default behavior (new line)
 			focusEditor();
@@ -315,26 +328,423 @@
 	}
 
 	function focusEditor() {
-    if (editor) {
-      editor.action((ctx) => {
-        const view = ctx.get(editorViewCtx);
-        view.focus();
-        const { state } = view;
-        if (state.doc.content.size > 0) {
-          // If the document has content, move cursor to the end
-          const { tr } = state;
-          const lastPos = state.doc.content.size;
-          view.dispatch(tr.setSelection(state.selection.constructor.near(state.doc.resolve(lastPos))));
-        } else {
-          // If the document is empty, just focus without changing selection
-          view.focus();
-        }
-      });
-    }
+		if (editor) {
+			editor.action((ctx) => {
+				const view = ctx.get(editorViewCtx);
+				view.focus();
+				const { state } = view;
+				if (state.doc.content.size > 0) {
+					// If the document has content, move cursor to the end
+					const { tr } = state;
+					const lastPos = state.doc.content.size;
+					view.dispatch(
+						tr.setSelection(state.selection.constructor.near(state.doc.resolve(lastPos)))
+					);
+				} else {
+					// If the document is empty, just focus without changing selection
+					view.focus();
+				}
+			});
+		}
+	}
+
+	// Function to convert markdown-style checkboxes to HTML checkboxes
+	function convertCheckboxes(text) {
+		return text.replace(/- \[(x| )\] /g, (match, checked) => {
+			const isChecked = checked === 'x' ? 'checked' : '';
+			return `<label class="task-list-item"><input type="checkbox" ${isChecked}> `;
+		});
+	}
+
+	// Function to convert hashtags to styled tags
+	function convertTags(text) {
+		return text.replace(/#(\w+)/g, '<span class="tag">#$1</span>');
+	}
+
+	// Function to update editor content
+	function updateEditor() {
+		let updatedContent = editor.innerHTML;
+		updatedContent = convertCheckboxes(updatedContent);
+		updatedContent = convertTags(updatedContent);
+		editor.innerHTML = updatedContent;
+	}
+
+	const shortcuts = {
+		'audio-recorder:start': [{ modifiers: ['Mod'], key: 'R' }],
+		'audio-recorder:stop': [{ modifiers: ['Mod'], key: 'R' }],
+		'switcher:open': [
+			{ modifiers: [], key: 'F1' },
+			{ modifiers: ['Alt'], key: 'Q' }
+		],
+		'app:open-help': [],
+		'window:zoom-in': [{ modifiers: ['Mod'], key: '=' }],
+		'window:zoom-out': [{ modifiers: ['Mod'], key: '-' }],
+		'daily-notes': [{ modifiers: [], key: 'F2' }],
+		'backlink:open': [{ modifiers: [], key: 'F3' }],
+		'app:go-back': [{ modifiers: ['Mod'], key: ',' }],
+		'app:go-forward': [{ modifiers: ['Mod'], key: '.' }],
+		'editor:toggle-checklist-status':[{ modifiers: ['Mod'], key: 'l' }],
+		'outline:open': [{ modifiers: ['Alt'], key: 'O' }],
+		'obsidian-checklist-plugin:show-checklist-view': [{ modifiers: ['Alt'], key: 'C' }],
+		'obsidian-excalidraw-plugin:insert-link-to-element': [],
+		'obsidian-markdown-formatting-assistant-plugin:open-command-selector': [],
+		'workspace:next-tab': [{ modifiers: ['Mod'], key: 'Tab' }],
+		'workspace:previous-tab': [{ modifiers: ['Mod', 'Shift'], key: 'Tab' }],
+		'app:toggle-right-sidebar': [{ modifiers: ['Alt'], key: 'R' }],
+		'obsidian-outliner:fold': [{ modifiers: ['Mod', 'Shift'], key: ',' }],
+		'obsidian-outliner:unfold': [{ modifiers: ['Mod', 'Shift'], key: '.' }],
+		'obsidian-outliner:move-list-item-down': [{ modifiers: ['Mod'], key: 'ArrowDown' }],
+		'obsidian-outliner:move-list-item-up': [{ modifiers: ['Mod'], key: 'ArrowUp' }],
+		'obsidian-outliner:outdent-list': [{ modifiers: ['Mod'], key: '[' }],
+		'obsidian-outliner:indent-list': [{ modifiers: ['Mod'], key: ']' }],
+		'app:open-settings': [{ modifiers: ['Alt'], key: '/' }],
+		'editor:cycle-list-checklist': [{ modifiers: ['Mod'], key: '\\' }],
+		'app:toggle-left-sidebar': [{ modifiers: ['Alt'], key: 'L' }]
+	};
+
+	function handleShortcut(e) {
+		for (const [action, combinations] of Object.entries(shortcuts)) {
+			for (const combo of combinations) {
+				const modifiersMatch = combo.modifiers.every((mod) => {
+					if (mod === 'Mod') return e.ctrlKey || e.metaKey;
+					if (mod === 'Alt') return e.altKey;
+					if (mod === 'Shift') return e.shiftKey;
+					return false;
+				});
+
+				if (modifiersMatch && e.key === combo.key) {
+					e.preventDefault();
+					console.log(`Action triggered: ${action}`);
+					performAction(action);
+					return;
+				}
+			}
+		}
+	}
+
+	let fontSize = 16; // Base font size in pixels
+
+	function toggleChecklistStatus() {
+		const selection = window.getSelection();
+		const node = selection.anchorNode;
+		if (node && node.parentElement && node.parentElement.classList.contains('task-list-item')) {
+			const checkbox = node.parentElement.querySelector('input[type="checkbox"]');
+			if (checkbox) {
+				checkbox.checked = !checkbox.checked;
+				updateEditor();
+			}
+		}
+	}
+
+	function performAction(action) {
+		switch (action) {
+			case 'audio-recorder:start':
+			case 'audio-recorder:stop':
+				console.log('Toggle audio recording');
+				toggleAudioRecording();
+				break;
+			case 'switcher:open':
+				console.log('Open switcher');
+				openSwitcher();
+				break;
+			case 'app:open-help':
+				console.log('Open help');
+				openHelp();
+				break;
+			case 'window:zoom-in':
+				console.log('Zoom in');
+				zoomIn();
+				break;
+			case 'window:zoom-out':
+				console.log('Zoom out');
+				zoomOut();
+				break;
+			case 'daily-notes':
+				console.log('Open daily notes');
+				openDailyNotes();
+				break;
+			case 'backlink:open':
+				console.log('Open backlinks');
+				openBacklinks();
+				break;
+			case 'app:go-back':
+				console.log('Go back');
+				goBack();
+				break;
+			case 'app:go-forward':
+				console.log('Go forward');
+				goForward();
+				break;
+			case 'editor:toggle-checklist-status':
+				console.log('Toggle checklist status');
+				toggleChecklistStatus();
+				break;
+			case 'outline:open':
+				console.log('Open outline');
+				openOutline();
+				break;
+			case 'obsidian-checklist-plugin:show-checklist-view':
+				console.log('Show checklist view');
+				showChecklistView();
+				break;
+			case 'obsidian-excalidraw-plugin:insert-link-to-element':
+				console.log('Insert link to element');
+				insertLinkToElement();
+				break;
+			case 'obsidian-markdown-formatting-assistant-plugin:open-command-selector':
+				console.log('Open command selector');
+				openCommandSelector();
+				break;
+			case 'workspace:next-tab':
+				console.log('Go to next tab');
+				goToNextTab();
+				break;
+			case 'workspace:previous-tab':
+				console.log('Go to previous tab');
+				goToPreviousTab();
+				break;
+			case 'app:toggle-right-sidebar':
+				console.log('Toggle right sidebar');
+				toggleRightSidebar();
+				break;
+			case 'obsidian-outliner:fold':
+				console.log('Fold outline');
+				foldOutline();
+				break;
+			case 'obsidian-outliner:unfold':
+				console.log('Unfold outline');
+				unfoldOutline();
+				break;
+			case 'obsidian-outliner:move-list-item-down':
+				console.log('Move list item down');
+				moveListItemDown();
+				break;
+			case 'obsidian-outliner:move-list-item-up':
+				console.log('Move list item up');
+				moveListItemUp();
+				break;
+			case 'obsidian-outliner:outdent-list':
+				console.log('Outdent list');
+				outdentList();
+				break;
+			case 'obsidian-outliner:indent-list':
+				console.log('Indent list');
+				indentList();
+				break;
+			case 'app:open-settings':
+				console.log('Open settings');
+				openSettings();
+				break;
+			case 'editor:cycle-list-checklist':
+				console.log('Cycle list/checklist');
+				cycleListChecklist();
+				break;
+			case 'app:toggle-left-sidebar':
+				console.log('Toggle left sidebar');
+				toggleLeftSidebar();
+				break;
+			default:
+				console.log(`Unhandled action: ${action}`);
+		}
+	}
+
+	function toggleAudioRecording() {
+		// This would require a custom implementation or integration with an audio recording plugin
+		console.log('Audio recording toggled');
+	}
+
+	function openSwitcher() {
+		// Open command palette
+		editor.action((ctx) => {
+			ctx.get(callCommand)(/* Command for opening command palette */);
+		});
+	}
+
+	function openHelp() {
+		// This would require a custom implementation for your help system
+		console.log('Help opened');
+	}
+
+	function zoomIn() {
+		// Increase font size
+		document.body.style.fontSize = `${parseFloat(getComputedStyle(document.body).fontSize) * 1.1}px`;
+	}
+
+	function zoomOut() {
+		// Decrease font size
+		document.body.style.fontSize = `${parseFloat(getComputedStyle(document.body).fontSize) * 0.9}px`;
+	}
+
+	function openDailyNotes() {
+		// This would require a custom implementation for your daily notes system
+		console.log('Daily notes opened');
+	}
+
+	function openBacklinks() {
+		// This would require a custom implementation for your backlinks system
+		console.log('Backlinks opened');
+	}
+
+	function goBack() {
+		editor.action((ctx) => {
+			console.log(`🚀 ~ editor.action ~ ctx:`, ctx);
+			console.log(`🚀 ~ editor.action ~ callCommand:`, callCommand);
+			ctx.get(callCommand)(undoCommand.key);
+		});
+	}
+
+	function goForward() {
+		editor.action((ctx) => {
+			ctx.get(callCommand)(redoCommand.key);
+		});
+	}
+
+	function openOutline() {
+		// This would require a custom implementation for your outline system
+		console.log('Outline opened');
+	}
+
+	function showChecklistView() {
+		// This would require a custom implementation for your checklist view
+		console.log('Checklist view shown');
+	}
+
+	function insertLinkToElement() {
+		// This would require a custom implementation for your link insertion system
+		console.log('Link to element inserted');
+	}
+
+	function openCommandSelector() {
+		// This is likely the same as openSwitcher()
+		openSwitcher();
+	}
+
+	function goToNextTab() {
+		// This would require a custom implementation for your tab system
+		console.log('Navigated to next tab');
+	}
+
+	function goToPreviousTab() {
+		// This would require a custom implementation for your tab system
+		console.log('Navigated to previous tab');
+	}
+
+	function toggleRightSidebar() {
+		// This would require a custom implementation for your sidebar system
+		console.log('Right sidebar toggled');
+	}
+
+	function foldOutline() {
+		// This would require a custom implementation for your outline system
+		console.log('Outline folded');
+	}
+
+	function unfoldOutline() {
+		// This would require a custom implementation for your outline system
+		console.log('Outline unfolded');
+	}
+
+	function moveListItemDown() {
+		// This would require a custom implementation for list manipulation
+		console.log('List item moved down');
+	}
+
+	function moveListItemUp() {
+		// This would require a custom implementation for list manipulation
+		console.log('List item moved up');
+	}
+
+	function outdentList() {
+		// This would require a custom implementation for list manipulation
+		console.log('List outdented');
+	}
+
+	function indentList() {
+		// This would require a custom implementation for list manipulation
+		console.log('List indented');
+	}
+
+	function openSettings() {
+		// This would require a custom implementation for your settings system
+		console.log('Settings opened');
+	}
+
+	function cycleListChecklist() {
+  if (!editor) {
+    console.log("Editor not initialized");
+    return;
   }
+
+  editor.action((ctx) => {
+    const view = ctx.get(editorViewCtx);
+    if (!view) {
+      console.log("Editor view not found");
+      return;
+    }
+
+    const { state, dispatch } = view;
+    const { selection, doc } = state;
+    const { $from } = selection;
+
+    const node = doc.nodeAt($from.pos);
+    if (!node) {
+      console.log("No node at current position");
+      return;
+    }
+
+    console.log("Current node type:", node.type.name);
+
+    if (node.type === listItemSchema.type) {
+      console.log("Converting to task list item");
+      const taskListItemType = state.schema.nodes.taskListItem;
+      if (taskListItemType) {
+        dispatch(state.tr.setNodeMarkup($from.pos, taskListItemType, { checked: false }));
+      } else {
+        console.log("taskListItem type not found in schema");
+      }
+    } else if (node.type.name === 'taskListItem') {
+      console.log("Handling task list item");
+      if (!node.attrs.checked) {
+        console.log("Checking task list item");
+        dispatch(state.tr.setNodeMarkup($from.pos, null, { checked: true }));
+        const strikeType = state.schema.marks.strike;
+        if (strikeType) {
+          dispatch(state.tr.addMark($from.pos, $from.pos + node.nodeSize, strikeType.create()));
+        } else {
+          console.log("Strike mark not found in schema");
+        }
+      } else {
+        console.log("Converting back to regular list item");
+        dispatch(state.tr.setNodeMarkup($from.pos, listItemSchema.type));
+        const strikeType = state.schema.marks.strike;
+        if (strikeType) {
+          dispatch(state.tr.removeMark($from.pos, $from.pos + node.nodeSize, strikeType));
+        }
+      }
+    } else {
+      console.log("Creating new unordered list item");
+      const bulletList = bulletListSchema.type.create();
+      const listItem = listItemSchema.type.create();
+      dispatch(state.tr
+        .insert($from.pos, bulletList)
+        .insert($from.pos + 1, listItem)
+        .delete($from.pos + 2, $from.pos + 2 + node.nodeSize)
+      );
+    }
+
+    content = view.state.doc.textContent;
+    handleInput();
+    console.log("Content updated:", content);
+  });
+}
+
+	function toggleLeftSidebar() {
+		// This would require a custom implementation for your sidebar system
+		console.log('Left sidebar toggled');
+	}
 </script>
 
-<main class="h-screen bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1">
+<main class="milkdown-notes bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1">
 	<Resizable.PaneGroup direction="horizontal" class="h-full">
 		<Resizable.Pane defaultSize={25} minSize={15} maxSize={40}>
 			<div class="h-full overflow-y-auto bg-slate-2 p-4 dark:bg-slate-12">
@@ -516,7 +926,6 @@
 					<div class="w-full pr-2">
 						<div
 							id="editor"
-					
 							bind:this={contentArea}
 							class="h-full w-full bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1"
 						></div>
@@ -526,3 +935,55 @@
 		</Resizable.Pane>
 	</Resizable.PaneGroup>
 </main>
+
+<style>
+	.milkdown-notes {
+		height: calc(100vh - 64px);
+		margin-top: 64px;
+	}
+
+	.milkdown :global(.task-list-item input[type='checkbox']) {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 1.2em;
+		height: 1.2em;
+		border: 2px solid var(--slate-7);
+		border-radius: 0.2em;
+		margin-right: 0.5em;
+		vertical-align: middle;
+		position: relative;
+		cursor: pointer;
+	}
+
+	.milkdown :global(.task-list-item input[type='checkbox']:checked) {
+		background-color: var(--green-9);
+		border-color: var(--green-9);
+	}
+
+	.milkdown :global(.task-list-item input[type='checkbox']:checked::after) {
+		content: '✓';
+		font-size: 1em;
+		color: white;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+	}
+
+	/* Styles for tags */
+	.milkdown :global(.tag) {
+		display: inline-block;
+		background-color: var(--blue-4);
+		color: var(--blue-11);
+		padding: 0.2em 0.6em;
+		border-radius: 9999px;
+		font-size: 0.9em;
+		font-weight: 500;
+		margin: 0 0.2em;
+		transition: background-color 0.2s ease;
+	}
+
+	.milkdown :global(.tag:hover) {
+		background-color: var(--blue-5);
+	}
+</style>

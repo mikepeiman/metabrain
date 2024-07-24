@@ -5,7 +5,7 @@ import flattenColorPalette from 'tailwindcss/lib/util/flattenColorPalette';
 
 const config: Config = {
 	darkMode: ["class"],
-	content: ["./src/**/*.{html,js,svelte,ts}"],
+	content: ["./src/**/*.{html,js,svelte,ts,jsx,tsx}"],
 	safelist: ["dark"],
 	plugins: [tailwindcssRadixColors, addVariablesForColors],
 	theme: {
