@@ -1,8 +1,15 @@
 <script lang="ts">
 	import { IconSearch } from '@tabler/icons-svelte';
 	import DarkModeToggle from '$components/DarkModeToggle.svelte';
+	import Login from '$components/Login.svelte';
+	import { goto } from '$app/navigation';
+	import Register from '$components/Register.svelte';
+	import { currentUser, logout } from '$utils/pocketbase';
 
 	let searchQuery = '';
+	$: isLoggedIn = $currentUser !== undefined && $currentUser !== null;
+	$: console.log(`🚀 ~ isLoggedIn:`, isLoggedIn)
+	$: console.log(`🚀 ~ $currentUser:`, $currentUser)
 </script>
 
 <header class="fixed top-0 left-16 right-0 z-10 bg-white dark:bg-black border-b border-slate-200 dark:border-slate-800">
@@ -21,8 +28,14 @@
 				/>
 			</div>
 		</div>
-		<div class="ml-4">
+		<div class="flex items-center space-x-4">
 			<DarkModeToggle />
+			{#if isLoggedIn}
+				<button class="text-blue-1 rounded dark:bg-white bg-blue-12 hover:underline dark:text-blue-12 py-2 px-4" on:click={logout}>Logout</button>
+			{:else}
+				<button class="text-blue-1 rounded dark:bg-white bg-blue-12 hover:underline dark:text-blue-12 py-2 px-4" on:click={() => goto('/register')}>Register</button>
+
+			{/if}
 		</div>
 	</div>
 </header>

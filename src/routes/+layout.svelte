@@ -6,8 +6,10 @@
 	import MambaHeader from '$lib/components/MambaHeader.svelte';
 	import SideMenuLeft from '$components/SideMenuLeft.svelte';
 	import Login from '$components/Login.svelte';
+	import Register from '$components/Register.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { pb, currentUser } from '$utils/pocketbase';
 
 	let isLoggedIn = false;
@@ -30,12 +32,18 @@
 		isLoggedIn = true;
 		goto('/'); // Redirect to home page after login
 	}
+	function handleRegister() {
+		isLoggedIn = true;
+		goto('/'); // Redirect to home page after registration
+	}
+
+	$: isRegisterRoute = $page.url.pathname === '/register';
 </script>
 
+<MambaHeader />
+<SideMenuLeft />
 {#if isLoggedIn}
 	<CommandPalette />
-	<MambaHeader />
-	<SideMenuLeft />
 	<div
 		id="app"
 		class="absolute bg-zinc-100 flex min-h-screen w-full text-white dark:bg-black"
@@ -43,6 +51,8 @@
 		<Toaster />
 		<slot></slot>
 	</div>
+	{:else if isRegisterRoute}
+	<Register on:register={handleRegister} />
 {:else}
 	<Login on:login={handleLogin} />
 {/if}

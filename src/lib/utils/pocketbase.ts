@@ -1,6 +1,7 @@
 import PocketBase from 'pocketbase';
 import { writable, derived } from 'svelte/store';
 import { goto } from '$app/navigation';
+
 // Create PocketBase instance
 export const pb = new PocketBase('http://127.0.0.1:8090');
 
@@ -23,15 +24,27 @@ export const currentUser = createCurrentUser();
 
 // Create a writable store for the user profile
 function createCurrentUserProfile() {
-    const { subscribe, set } = writable(null);
-
-    // Initial load
-    refreshUserProfile();
+    const { subscribe, set, update } = writable(null);
 
     return {
         subscribe,
         set,
-        update: async (data) => {
+        update,
+        refresh: async () => {
+            const user = pb.authStore.model;
+            if (user) {
+                try {
+                    const profile = await pb.collection('users').getOne(user.id, { requestKey: null });
+                    set(profile);
+                } catch (err) {
+                    console.error('Failed to fetch user profile:', err);
+                    set(null);
+                }
+            } else {
+                set(null);
+            }
+        },
+        updateProfile: async (data) => {
             const user = pb.authStore.model;
             if (user) {
                 try {
@@ -50,66 +63,35 @@ function createCurrentUserProfile() {
     };
 }
 
+export const currentUserProfile = createCurrentUserProfile();
+
 export async function refreshAuth() {
     try {
         if (pb.authStore.isValid) {
             await pb.collection('users').authRefresh();
+            await currentUserProfile.refresh();
+            return true;
         } else {
             console.log('Auth token is not valid, skipping refresh');
             return false;
         }
-        await refreshUserProfile();
-        return true;
     } catch (err) {
         console.error('Failed to refresh authentication:', err);
-        if (err instanceof Error) {
-            console.error('Error message:', err.message);
-            console.error('Error stack:', err.stack);
-        }
-        if (err.response) {
-            console.error('Response status:', err.response.status);
-            console.error('Response data:', err.response.data);
-        }
         // Handle authentication failure (e.g., redirect to login)
         return false;
     }
 }
-export const currentUserProfile = createCurrentUserProfile();
 
 // Update currentUser store when auth state changes
 pb.authStore.onChange((auth) => {
     console.log('AuthStore changed', auth);
     currentUser.set(pb.authStore.model);
     if (auth) {
-        refreshUserProfile();
+        currentUserProfile.refresh();
     } else {
         currentUserProfile.set(null);
     }
 });
-
-// Function to refresh the user profile
-async function refreshUserProfile() {
-    const user = pb.authStore.model;
-    if (user) {
-        try {
-            const profile = await pb.collection('users').getOne(user.id, { requestKey: null });
-            currentUserProfile.set(profile);
-        } catch (err) {
-            console.error('Failed to fetch user profile:', err);
-            if (err instanceof Error) {
-                console.error('Error message:', err.message);
-                console.error('Error stack:', err.stack);
-            }
-            if (err.response) {
-                console.error('Response status:', err.response.status);
-                console.error('Response data:', err.response.data);
-            }
-            currentUserProfile.set(null);
-        }
-    } else {
-        currentUserProfile.set(null);
-    }
-}
 
 // Test connection
 pb.health.check().then(() => {
@@ -134,11 +116,11 @@ export async function getUserProfile() {
 
 // Helper function to update user profile
 export async function updateUserProfile(data) {
-    return currentUserProfile.update(data);
+    return currentUserProfile.updateProfile(data);
 }
 
 export function logout() {
     console.log('Logging out...');
     pb.authStore.clear();
     goto('/');
-  }
+}

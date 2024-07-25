@@ -5,7 +5,7 @@
     import { pb } from '$utils/pocketbase';
     import { goto } from '$app/navigation';
 
-    import UserRegister from '$lib/components/UserRegister.svelte';
+    import Register from '$components/Register.svelte';
 
     let email = '';
     let password = '';
@@ -35,4 +35,4 @@
     }
 </script>
 
-<UserRegister user={data.user} />
+<Register user={data.user} />
