@@ -40,23 +40,25 @@
 	$: isRegisterRoute = $page.url.pathname === '/register';
 </script>
 
+<div
+	id="app"
+	class="absolute bg-zinc-100 flex min-h-screen w-full text-white dark:bg-black"
+>
 <MambaHeader />
 <SideMenuLeft />
+<div class="flex items-center justify-center w-full h-full">
 {#if isLoggedIn}
 	<CommandPalette />
-	<div
-		id="app"
-		class="absolute bg-zinc-100 flex min-h-screen w-full text-white dark:bg-black"
-	>
 		<Toaster />
 		<slot></slot>
-	</div>
-	{:else if isRegisterRoute}
-	<Register on:register={handleRegister} />
-{:else}
-	<Login on:login={handleLogin} />
-{/if}
+		{:else if isRegisterRoute}
+		<Register on:register={handleRegister} />
+		{:else}
+		<Login on:login={handleLogin} />
+		{/if}
 
+	</div>
+</div>
 <style>
 	#app {
 		left: var(--sidebar-width);

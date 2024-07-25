@@ -6,9 +6,9 @@
 	import { onMount } from 'svelte';
 
 	let isExpanded = false;
-  $: sidebarWidth = isExpanded ? '14rem' : '4rem';
-  $: console.log(`🚀 ~ sidebarWidth:`, sidebarWidth)
-  $:  document.documentElement.style.setProperty('--sidebar-width', sidebarWidth);
+	$: sidebarWidth = isExpanded ? '14rem' : '4rem';
+	$: console.log(`🚀 ~ sidebarWidth:`, sidebarWidth);
+	$: document.documentElement.style.setProperty('--sidebar-width', sidebarWidth);
 	const menuItems = [
 		{ href: '#', action: 'expandSidebar', icon: IconArrowRightBar, label: 'collapse menu' },
 		{ href: '/', icon: Home, label: 'Home' },
@@ -27,6 +27,8 @@
 
 	$: profile = $currentUserProfile;
 	$: avatarPreview = profile?.avatar ? pb.getFileUrl(profile, profile.avatar) : null;
+
+	$: isLoggedIn = !!$currentUser;
 
 	onMount(() => {
 		const savedState = localStorage.getItem('sidebarExpanded');
@@ -56,52 +58,67 @@
 </script>
 
 <aside
-	class="border-slate-200 dark:border-slate-800 fixed inset-y-0 left-0 z-20 flex flex-col border-r bg-white transition-all duration-300 ease-in-out dark:bg-black {isExpanded
+	class="border-slate-200 dark:border-slate-800 fixed inset-y-0 left-0 z-20 flex flex-col border-r bg-white text-blue-11 transition-all duration-300 ease-in-out dark:bg-black dark:text-white {isExpanded
 		? 'w-[14rem]'
 		: 'w-[4rem]'}"
 >
-	<nav class="flex flex-col gap-2 overflow-y-auto px-2 py-4">
-		{#each menuItems as item}
-			<Tooltip.Root>
-				<Tooltip.Trigger asChild let:builder>
-					<a
-						href={item.href}
-						rel="prefetch"
-						class="sidebar-item text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex h-8 w-full items-center rounded-lg p-2 transition-colors"
-						use:builder.action
-						{...builder}
-						on:click|stopPropagation={(e) => handleItemClick(item)}
-					>
-						{#if item.action === 'expandSidebar'}
-							<div
-								on:click={(e) => toggleSidebar(e)}
-								class="flex h-5 w-5 flex-shrink-0 items-center justify-center"
-							>
-								<svelte:component
-									this={item.icon}
-									class="h-5 w-5 transition-transform duration-500 {isExpanded
-										? 'rotate-180 transform'
-										: ''}"
-								/>
-							</div>
-						{:else}
-							<div class="flex h-5 w-5 flex-shrink-0 items-center justify-center">
-								<svelte:component this={item.icon} class="h-5 w-5" />
-							</div>
-						{/if}
+	<nav class="relative flex flex-col gap-2 overflow-y-auto px-2 py-4">
+		<a
+			href="/"
+			class="absolute left-0 top-0 flex h-[4rem] w-full items-center justify-center bg-gradient-to-r from-blue-9 to-indigo-9"
+		>
+			<img src="/images/metabrain-logo.svg" alt="Metabrain Logo" class="h-8 w-8 rounded-full" />
+		</a>
 
-						{#if isExpanded}
-							<span class="ml-3 overflow-hidden text-ellipsis whitespace-nowrap">{item.label}</span>
-						{/if}
-						<span class="sr-only">{item.label}</span>
-					</a>
-				</Tooltip.Trigger>
-				<Tooltip.Content side="right">{item.label}</Tooltip.Content>
-			</Tooltip.Root>
-		{/each}
+		<div class="relative mt-[3rem] flex flex-col gap-2 overflow-y-auto px-2 py-4">
+			{#each menuItems as item}
+				<Tooltip.Root>
+					<Tooltip.Trigger asChild let:builder>
+						<a
+							href={item.href}
+							rel="prefetch"
+							class="sidebar-item text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 flex h-8 w-full items-center rounded-lg p-2 transition-colors"
+							use:builder.action
+							{...builder}
+							on:click|stopPropagation={(e) => handleItemClick(item)}
+						>
+							{#if item.action === 'expandSidebar'}
+								<div
+									on:click={(e) => toggleSidebar(e)}
+									class="flex h-5 w-5 flex-shrink-0 items-center justify-center"
+								>
+									<svelte:component
+										this={item.icon}
+										class="h-5 w-5 transition-transform duration-500 {isExpanded
+											? 'rotate-180 transform'
+											: ''}"
+									/>
+								</div>
+									{#if isExpanded}
+										<span on:click={(e) => toggleSidebar(e)} class="ml-3 overflow-hidden text-ellipsis whitespace-nowrap"
+											>{item.label}</span
+										>
+									{/if}
+							{:else}
+								<div class="flex h-5 w-5 flex-shrink-0 items-center justify-center">
+									<svelte:component this={item.icon} class="h-5 w-5" />
+								</div>
+							{/if}
+							{#if isExpanded && item.action !== 'expandSidebar'}
+								<span class="ml-3 overflow-hidden text-ellipsis whitespace-nowrap"
+									>{item.label}</span
+								>
+							{/if}
+							<span class="sr-only">{item.label}</span>
+						</a>
+					</Tooltip.Trigger>
+					<Tooltip.Content side="right">{item.label}</Tooltip.Content>
+				</Tooltip.Root>
+			{/each}
+		</div>
 
 		{#if isExpanded}
-			<div class="border-slate-200 dark:border-slate-800 my-4 w-full border-t "></div>
+			<div class="border-slate-200 dark:border-slate-800 my-4 w-full border-t"></div>
 			<div class="w-full">
 				<h3 class="text-slate-900 dark:text-slate-100 mb-2 px-2 text-sm font-semibold">
 					Recent Files
@@ -140,7 +157,7 @@
 					use:builder.action
 					{...builder}
 				>
-					<div class="flex  h-5 w-5 flex-shrink-0 items-center justify-center ml-2">
+					<div class="ml-2 flex h-5 w-5 flex-shrink-0 items-center justify-center">
 						<Settings class="h-5 w-5" />
 					</div>
 					{#if isExpanded}
@@ -153,27 +170,37 @@
 		</Tooltip.Root>
 
 		<div class="flex items-center p-2">
-			{#if avatarPreview}
-				<img src={avatarPreview} alt="User Avatar" class="h-9 w-9 rounded-full" />
-			{:else}
-				<div
-					class="bg-slate-200 dark:bg-slate-700 flex h-9 w-9 items-center justify-center rounded-full"
-				>
-					<span class="text-slate-600 dark:text-slate-400 text-sm"
-						>{profile?.firstname?.[0] || 'U'}</span
+			{#if isLoggedIn}
+				{#if avatarPreview}
+					<img src={avatarPreview} alt="User Avatar" class="h-9 w-9 rounded-full" />
+				{:else}
+					<div
+						class="bg-slate-200 dark:bg-slate-700 flex h-9 w-9 items-center justify-center rounded-full"
 					>
-				</div>
-			{/if}
-			{#if isExpanded}
-				<span
-					class="text-slate-600 dark:text-slate-400 ml-3 overflow-hidden text-ellipsis whitespace-nowrap"
-					>{profile?.username || 'User'}</span
-				>
+						<span class="text-slate-600 dark:text-slate-400 text-sm"
+							>{profile?.firstname?.[0] || 'U'}</span
+						>
+					</div>
+				{/if}
+				{#if isExpanded}
+					<span
+						class="text-slate-600 dark:text-slate-400 ml-3 overflow-hidden text-ellipsis whitespace-nowrap"
+						>{profile?.username || 'User'}</span
+					>
+				{/if}
+			{:else}
+				<a href="/login" class="flex w-full items-center">
+					{#if isExpanded}
+						<span
+							class="text-slate-600 dark:text-slate-400 ml-3 overflow-hidden text-ellipsis whitespace-nowrap"
+							>Login</span
+						>
+					{/if}
+				</a>
 			{/if}
 		</div>
 	</div>
 </aside>
 
 <style>
-
 </style>
