@@ -1,6 +1,6 @@
 import PocketBase from 'pocketbase';
 import { writable, derived } from 'svelte/store';
-
+import { goto } from '$app/navigation';
 // Create PocketBase instance
 export const pb = new PocketBase('http://127.0.0.1:8090');
 
@@ -140,4 +140,5 @@ export async function updateUserProfile(data) {
 export function logout() {
     console.log('Logging out...');
     pb.authStore.clear();
+    goto('/');
   }

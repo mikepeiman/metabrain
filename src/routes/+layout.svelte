@@ -1,23 +1,51 @@
-<script>
+<script lang="ts">
 	import '../app.css';
 	import { register } from '@tauri-apps/plugin-global-shortcut';
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import MambaHeader from '$lib/components/MambaHeader.svelte';
 	import SideMenuLeft from '$components/SideMenuLeft.svelte';
+	import Login from '$components/Login.svelte';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { pb, currentUser } from '$utils/pocketbase';
+
+	let isLoggedIn = false;
+
+	onMount(async () => {
+		// Check if the user is logged in
+		isLoggedIn = pb.authStore.isValid;
+
+		// Subscribe to auth state changes
+		pb.authStore.onChange((auth) => {
+			isLoggedIn = auth;
+			if (!isLoggedIn) {
+				goto('/login'); // Redirect to login page if logged out
+			}
+		});
+	});
+
+	// Function to handle successful login
+	function handleLogin() {
+		isLoggedIn = true;
+		goto('/'); // Redirect to home page after login
+	}
 </script>
 
-<CommandPalette />
-<MambaHeader />
-
-<SideMenuLeft />
-<div
-	id="app"
-	class="absolute bg-zinc-100 flex min-h-screen w-full  text-white dark:bg-black"
->
-	<Toaster />
-	<slot></slot>
-</div>
+{#if isLoggedIn}
+	<CommandPalette />
+	<MambaHeader />
+	<SideMenuLeft />
+	<div
+		id="app"
+		class="absolute bg-zinc-100 flex min-h-screen w-full text-white dark:bg-black"
+	>
+		<Toaster />
+		<slot></slot>
+	</div>
+{:else}
+	<Login on:login={handleLogin} />
+{/if}
 
 <style>
 	#app {
