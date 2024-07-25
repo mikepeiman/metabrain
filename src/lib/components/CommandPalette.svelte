@@ -5,6 +5,7 @@
 	import Gear from 'svelte-radix/Gear.svelte';
 	import Person from 'svelte-radix/Person.svelte';
 	import Rocket from 'svelte-radix/Rocket.svelte';
+	import Exit from 'svelte-radix/Exit.svelte';
 
 	import * as Command from '$lib/components/ui/command/index.js';
 	import { goto } from '$app/navigation';
@@ -115,14 +116,14 @@
 				<Command.Shortcut>⌘P</Command.Shortcut>
 			</Command.Item>
 			<Command.Item>
-				<EnvelopeClosed class="mr-2 h-4 w-4" />
-				<span>Mail</span>
-				<Command.Shortcut>⌘B</Command.Shortcut>
-			</Command.Item>
-			<Command.Item>
 				<Gear class="mr-2 h-4 w-4" />
 				<span>Settings</span>
 				<Command.Shortcut>⌘S</Command.Shortcut>
+			</Command.Item>
+			<Command.Item>
+				<Exit class="mr-2 h-4 w-4" />
+				<span>Logout</span>
+				<Command.Shortcut>⌘Q</Command.Shortcut>
 			</Command.Item>
 		</Command.Group>
 	</Command.List>

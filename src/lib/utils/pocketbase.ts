@@ -136,3 +136,7 @@ export async function getUserProfile() {
 export async function updateUserProfile(data) {
     return currentUserProfile.update(data);
 }
+
+export function logout() {
+    pb.authStore.clear();
+  }
