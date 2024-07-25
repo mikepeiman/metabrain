@@ -138,5 +138,6 @@ export async function updateUserProfile(data) {
 }
 
 export function logout() {
+    console.log('Logging out...');
     pb.authStore.clear();
   }

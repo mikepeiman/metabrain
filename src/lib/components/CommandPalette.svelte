@@ -6,7 +6,7 @@
 	import Person from 'svelte-radix/Person.svelte';
 	import Rocket from 'svelte-radix/Rocket.svelte';
 	import Exit from 'svelte-radix/Exit.svelte';
-
+	import { logout } from '$utils/pocketbase';
 	import * as Command from '$lib/components/ui/command/index.js';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
@@ -120,9 +120,11 @@
 				<span>Settings</span>
 				<Command.Shortcut>⌘S</Command.Shortcut>
 			</Command.Item>
-			<Command.Item>
-				<Exit class="mr-2 h-4 w-4" />
-				<span>Logout</span>
+			<Command.Item onSelect={() => logout()}>
+
+					<Exit class="mr-2 h-4 w-4" />
+					<span>Logout</span>
+
 				<Command.Shortcut>⌘Q</Command.Shortcut>
 			</Command.Item>
 		</Command.Group>
