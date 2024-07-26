@@ -58,17 +58,12 @@
 </script>
 
 <aside
-	class="border-slate-200 dark:border-slate-800 fixed inset-y-0 left-0 z-20 flex flex-col border-r bg-white text-blue-11 transition-all duration-300 ease-in-out dark:bg-black dark:text-white {isExpanded
+	class="border-slate-200 dark:border-slate-800 fixed inset-y-0 left-0 z-10 flex flex-col border-r bg-white text-blue-11 transition-all duration-300 ease-in-out dark:bg-black dark:text-white {isExpanded
 		? 'w-[14rem]'
 		: 'w-[4rem]'}"
 >
 	<nav class="relative flex flex-col gap-2 overflow-y-auto px-2 py-4">
-		<a
-			href="/"
-			class="absolute left-0 top-0 flex h-[4rem] w-full items-center justify-center bg-gradient-to-r from-blue-9 to-indigo-9"
-		>
-			<img src="/images/metabrain-logo.svg" alt="Metabrain Logo" class="h-8 w-8 rounded-full" />
-		</a>
+
 
 		<div class="relative mt-[3rem] flex flex-col gap-2 overflow-y-auto px-2 py-4">
 			{#each menuItems as item}
@@ -190,6 +185,7 @@
 				{/if}
 			{:else}
 				<a href="/login" class="flex w-full items-center">
+					<div class="flex "></div>
 					{#if isExpanded}
 						<span
 							class="text-slate-600 dark:text-slate-400 ml-3 overflow-hidden text-ellipsis whitespace-nowrap"
