@@ -51,7 +51,12 @@
         "height": 600,
         "resizable": true,
         "title": "Metabrain",
-        "width": 800
+        "width": 800,
+        "visible": false
+      },
+      {
+        "label": "splashscreen",
+        "url": "/splashscreen"
       }
     ],
     "security": {

@@ -38,27 +38,29 @@
 	}
 
 	$: isRegisterRoute = $page.url.pathname === '/register';
+	$: isSplashscreen = $page.url.pathname === '/splashscreen';
 </script>
 
-<div
-	id="app"
-	class="absolute bg-zinc-100 flex min-h-screen w-full text-white dark:bg-black"
->
-<MambaHeader />
-<SideMenuLeft />
-<div class="flex items-center justify-center w-full h-full">
-{#if isLoggedIn}
-	<CommandPalette />
-		<Toaster />
+<div id="app" class="bg-zinc-100 absolute flex min-h-screen w-full text-white dark:bg-black">
+	{#if isSplashscreen}
 		<slot></slot>
-		{:else if isRegisterRoute}
-		<Register on:register={handleRegister} />
-		{:else}
-		<Login on:login={handleLogin} />
-		{/if}
-
-	</div>
+	{:else}
+		<MambaHeader />
+		<SideMenuLeft />
+		<div class="flex h-full w-full items-center justify-center">
+			{#if isLoggedIn}
+				<CommandPalette />
+				<Toaster />
+				<slot></slot>
+			{:else if isRegisterRoute}
+				<Register on:register={handleRegister} />
+			{:else}
+				<Login on:login={handleLogin} />
+			{/if}
+		</div>
+	{/if}
 </div>
+
 <style>
 	#app {
 		left: var(--sidebar-width);
