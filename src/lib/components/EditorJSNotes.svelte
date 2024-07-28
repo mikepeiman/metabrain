@@ -25,7 +25,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import { Button } from '$lib/components/ui/button';
 	import { toast } from 'svelte-sonner';
-	// import * as ContextMenu from '$components/ui/context-menu/index.js';
+	import * as ContextMenu from '$lib/components/ui/context-menu/index.ts';
 	import { format, parseISO } from 'date-fns';
 	import { goto } from '$app/navigation';
 	import { debounce } from 'lodash-es';
@@ -392,197 +392,137 @@ async function saveNoteImmediately() {
 <div class="notes-container">
 	<div class="notes-list">
 	  <!-- ... (your existing notes list UI) ... -->
+	  <main class="editorjs-notes bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1">
+		 <Resizable.PaneGroup direction="horizontal" class="h-full">
+			 <Resizable.Pane defaultSize={25} minSize={15} maxSize={40}>
+				 <div class="h-full overflow-y-auto bg-slate-2 p-4 dark:bg-slate-12">
+					 <div class="mb-4 flex items-center justify-between">
+						 <h2 class="text-xl font-bold text-slate-12 dark:text-slate-1">Notes</h2>
+						 <Button
+							 on:click={createNewNote}
+							 variant="outline"
+							 size="sm"
+							 class="bg-slate-3 text-slate-11 hover:bg-slate-4 hover:text-slate-12 dark:bg-slate-10 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1"
+						 >
+							 <IconPlus class="mr-2 h-4 w-4" />
+							 Create
+						 </Button>
+					 </div>
+					 <div class="mb-4">
+						 <Select.Root onSelectedChange={handleSortChange} value={sortBy}>
+							 <Select.Trigger
+								 class="w-full bg-slate-3 text-slate-4 hover:bg-slate-4 hover:text-slate-12 dark:bg-slate-12 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1"
+							 >
+								 <Select.Value placeholder="Sort by..." />
+							 </Select.Trigger>
+							 <Select.Content class="bg-slate-2 dark:bg-slate-12">
+								 {#each ['created', 'updated', 'title'] as field}
+									 <Select.Item
+										 value={field}
+										 class="text-slate-11 hover:bg-slate-4 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1"
+									 >
+										 {field.charAt(0).toUpperCase() + field.slice(1)}
+										 <svelte:component this={getSortIcon(field)} class="ml-2 inline-block" />
+									 </Select.Item>
+								 {/each}
+							 </Select.Content>
+						 </Select.Root>
+					 </div>
+					 {#if isLoading}
+						 <div class="flex h-32 items-center justify-center">
+							 <IconLoader2 class="h-8 w-8 animate-spin text-slate-11 dark:text-slate-2" />
+						 </div>
+					 {:else if error}
+						 <div class="text-red-9 dark:text-red-3">{error}</div>
+					 {:else if notes.length === 0}
+						 <div class="text-slate-11 dark:text-slate-2">No notes found. Create a new one!</div>
+					 {:else}
+						 <ul>
+							 {#each notes as note (note.id)}
+								 <ContextMenu.Root>
+									 <ContextMenu.Trigger>
+										 <li
+											 class="cursor-pointer p-2 hover:bg-slate-3 hover:text-slate-12 dark:hover:bg-slate-10 dark:hover:text-slate-1 {currentNote?.id ===
+											 note.id
+												 ? 'bg-blue-4 text-slate-12 dark:bg-blue-9 dark:text-slate-1'
+												 : ''}"
+											 on:click={() => selectNote(note)}
+										 >
+											 <div class="flex items-center justify-between">
+												 <div>
+													 <div class="font-semibold text-slate-12 dark:text-slate-1">
+														 {note.title}
+													 </div>
+													 <div class="text-sm text-slate-11 dark:text-slate-3">
+														 {note.updated ? 'Updated ' : 'Created '}
+														 {formatDate(note.updated || note.created)}
+													 </div>
+												 </div>
+											 </div>
+										 </li>
+									 </ContextMenu.Trigger>
+	 
+	 
+
+	
+									 <ContextMenu.Content class="w-64 bg-slate-2 dark:bg-slate-12">
+										 {#each contextMenuItems as item}
+											 {#if item.isSeparator}
+												 <ContextMenu.Separator class="bg-slate-6 dark:bg-slate-7" />
+											 {:else}
+												 <ContextMenu.Item
+													 class="{item.isDanger 
+														 ? 'text-red-9 hover:bg-red-3 hover:text-red-11 dark:text-red-3 dark:hover:bg-red-9 dark:hover:text-red-1'
+														 : 'text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1'}"
+													 on:click={item.action ? () => item.action(note.id) : null}
+												 >
+													 <span class="flex items-center">
+														 <svelte:component this={item.icon} class="mr-2" />
+														 {item.text}
+													 </span>
+												 </ContextMenu.Item>
+											 {/if}
+										 {/each}
+									 </ContextMenu.Content>
+								 </ContextMenu.Root>
+							 {/each} 
+						 </ul>
+					 {/if}
+				 </div>
+			 </Resizable.Pane>
+			 <Resizable.Handle class="bg-slate-6 hover:bg-slate-7 dark:bg-slate-7 dark:hover:bg-slate-6" />
+			 <Resizable.Pane defaultSize={75} minSize={60} maxSize={85}>
+				 <div class="flex h-full">
+					 <div class="flex flex-grow flex-col overflow-y-scroll p-4 relative">
+						 <div class="mb-4 flex items-center">
+							 <IconNote class="mr-2 text-slate-11 dark:text-slate-2" />
+							 <input
+								 type="text"
+								 bind:value={title}
+								 bind:this={titleInput}
+								 on:input={handleInput}
+								 on:keydown={handleKeydown}
+								 class="w-full border-none bg-transparent text-2xl font-bold text-slate-12 placeholder-slate-11 focus:outline-none dark:text-slate-1 dark:placeholder-slate-3"
+								 placeholder="Note Title"
+								 disabled={!currentNote}
+							 />
+						 </div>
+						 <div id="editor" class="note-editor absolute top-[20rem]">
+							<input
+							  bind:value={title}
+							  on:input={handleInput}
+							  placeholder="Note title"
+							/>
+							<div id="editorjs"></div>
+						  </div>
+					 </div>
+				 </div>
+			 </Resizable.Pane>
+		 </Resizable.PaneGroup>
+	 </main> 
 	</div>
-	<div class="note-editor">
-	  <input
-		bind:value={title}
-		on:input={handleInput}
-		placeholder="Note title"
-	  />
-	  <div id="editorjs"></div>
-	</div>
+
   </div>
- <main class="editorjs-notes bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1">
-	<Resizable.PaneGroup direction="horizontal" class="h-full">
-		<Resizable.Pane defaultSize={25} minSize={15} maxSize={40}>
-			<div class="h-full overflow-y-auto bg-slate-2 p-4 dark:bg-slate-12">
-				<div class="mb-4 flex items-center justify-between">
-					<h2 class="text-xl font-bold text-slate-12 dark:text-slate-1">Notes</h2>
-					<Button
-						on:click={createNewNote}
-						variant="outline"
-						size="sm"
-						class="bg-slate-3 text-slate-11 hover:bg-slate-4 hover:text-slate-12 dark:bg-slate-10 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1"
-					>
-						<IconPlus class="mr-2 h-4 w-4" />
-						Create
-					</Button>
-				</div>
-				<div class="mb-4">
-					<Select.Root onSelectedChange={handleSortChange} value={sortBy}>
-						<Select.Trigger
-							class="w-full bg-slate-3 text-slate-4 hover:bg-slate-4 hover:text-slate-12 dark:bg-slate-12 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1"
-						>
-							<Select.Value placeholder="Sort by..." />
-						</Select.Trigger>
-						<Select.Content class="bg-slate-2 dark:bg-slate-12">
-							{#each ['created', 'updated', 'title'] as field}
-								<Select.Item
-									value={field}
-									class="text-slate-11 hover:bg-slate-4 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1"
-								>
-									{field.charAt(0).toUpperCase() + field.slice(1)}
-									<svelte:component this={getSortIcon(field)} class="ml-2 inline-block" />
-								</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</div>
-				{#if isLoading}
-					<div class="flex h-32 items-center justify-center">
-						<IconLoader2 class="h-8 w-8 animate-spin text-slate-11 dark:text-slate-2" />
-					</div>
-				{:else if error}
-					<div class="text-red-9 dark:text-red-3">{error}</div>
-				{:else if notes.length === 0}
-					<div class="text-slate-11 dark:text-slate-2">No notes found. Create a new one!</div>
-				{:else}
-					<ul>
-						<!-- {#each notes as note (note.id)}
-							<ContextMenu.Root>
-								<ContextMenu.Trigger>
-									<li
-										class="cursor-pointer p-2 hover:bg-slate-3 hover:text-slate-12 dark:hover:bg-slate-10 dark:hover:text-slate-1 {currentNote?.id ===
-										note.id
-											? 'bg-blue-4 text-slate-12 dark:bg-blue-9 dark:text-slate-1'
-											: ''}"
-										on:click={() => selectNote(note)}
-									>
-										<div class="flex items-center justify-between">
-											<div>
-												<div class="font-semibold text-slate-12 dark:text-slate-1">
-													{note.title}
-												</div>
-												<div class="text-sm text-slate-11 dark:text-slate-3">
-													{note.updated ? 'Updated ' : 'Created '}
-													{formatDate(note.updated || note.created)}
-												</div>
-											</div>
-										</div>
-									</li>
-								</ContextMenu.Trigger>
-
-
-								<ContextMenu.Content class="w-64 bg-slate-2 dark:bg-slate-12">
-									{#each contextMenuItems as item}
-										{#if item.isSeparator}
-											<ContextMenu.Separator class="bg-slate-6 dark:bg-slate-7" />
-										{:else}
-											<ContextMenu.Item
-												class="{item.isDanger 
-													? 'text-red-9 hover:bg-red-3 hover:text-red-11 dark:text-red-3 dark:hover:bg-red-9 dark:hover:text-red-1'
-													: 'text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1'}"
-												on:click={item.action ? () => item.action(note.id) : null}
-											>
-												<span class="flex items-center">
-													<svelte:component this={item.icon} class="mr-2" />
-													{item.text}
-												</span>
-											</ContextMenu.Item>
-										{/if}
-									{/each}
-								</ContextMenu.Content>
-								<ContextMenu.Content class="w-64 bg-slate-2 dark:bg-slate-12">
-									{#each contextMenuItems as item}
-										{#if item.isSeparator}
-											<ContextMenu.Separator class="bg-slate-6 dark:bg-slate-7" />
-										{:else}
-											<ContextMenu.Item
-												class="{item.isDanger 
-													? 'text-red-9 hover:bg-red-3 hover:text-red-11 dark:text-red-3 dark:hover:bg-red-9 dark:hover:text-red-1'
-													: 'text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1'}"
-												on:click={item.action ? () => item.action(note.id) : null}
-											>
-												<span class="flex items-center">
-													<svelte:component this={item.icon} class="mr-2" />
-													{item.text}
-												</span>
-											</ContextMenu.Item>
-										{/if}
-									{/each}
-								</ContextMenu.Content>
-								<ContextMenu.Content class="w-64 bg-slate-2 dark:bg-slate-12">
-									{#each contextMenuItems as item}
-										{#if item.isSeparator}
-											<ContextMenu.Separator class="bg-slate-6 dark:bg-slate-7" />
-										{:else}
-											<ContextMenu.Item
-												class="{item.isDanger 
-													? 'text-red-9 hover:bg-red-3 hover:text-red-11 dark:text-red-3 dark:hover:bg-red-9 dark:hover:text-red-1'
-													: 'text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1'}"
-												on:click={item.action ? () => item.action(note.id) : null}
-											>
-												<span class="flex items-center">
-													<svelte:component this={item.icon} class="mr-2" />
-													{item.text}
-												</span>
-											</ContextMenu.Item>
-										{/if}
-									{/each}
-								</ContextMenu.Content>
-								<ContextMenu.Content class="w-64 bg-slate-2 dark:bg-slate-12">
-									{#each contextMenuItems as item}
-										{#if item.isSeparator}
-											<ContextMenu.Separator class="bg-slate-6 dark:bg-slate-7" />
-										{:else}
-											<ContextMenu.Item
-												class="{item.isDanger 
-													? 'text-red-9 hover:bg-red-3 hover:text-red-11 dark:text-red-3 dark:hover:bg-red-9 dark:hover:text-red-1'
-													: 'text-slate-11 hover:bg-slate-3 hover:text-slate-12 dark:text-slate-2 dark:hover:bg-slate-10 dark:hover:text-slate-1'}"
-												on:click={item.action ? () => item.action(note.id) : null}
-											>
-												<span class="flex items-center">
-													<svelte:component this={item.icon} class="mr-2" />
-													{item.text}
-												</span>
-											</ContextMenu.Item>
-										{/if}
-									{/each}
-								</ContextMenu.Content>
-							</ContextMenu.Root>
-						{/each} -->
-					</ul>
-				{/if}
-			</div>
-		</Resizable.Pane>
-		<Resizable.Handle class="bg-slate-6 hover:bg-slate-7 dark:bg-slate-7 dark:hover:bg-slate-6" />
-		<Resizable.Pane defaultSize={75} minSize={60} maxSize={85}>
-			<div class="flex h-full">
-				<div class="flex flex-grow flex-col overflow-y-scroll p-4">
-					<div class="mb-4 flex items-center">
-						<IconNote class="mr-2 text-slate-11 dark:text-slate-2" />
-						<input
-							type="text"
-							bind:value={title}
-							bind:this={titleInput}
-							on:input={handleInput}
-							on:keydown={handleKeydown}
-							class="w-full border-none bg-transparent text-2xl font-bold text-slate-12 placeholder-slate-11 focus:outline-none dark:text-slate-1 dark:placeholder-slate-3"
-							placeholder="Note Title"
-							disabled={!currentNote}
-						/>
-					</div>
-					<div class="w-full pr-2">
-						<div
-							id="editor"
-							class="h-full w-full bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1"
-						></div>
-					</div>
-				</div>
-			</div>
-		</Resizable.Pane>
-	</Resizable.PaneGroup>
-</main> 
 
 <style>
 	/* Add any global styles here if needed */
