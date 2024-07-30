@@ -34,6 +34,7 @@
 	import List from '@editorjs/list';
 	import Checklist from '@editorjs/checklist';
 	import Paragraph from '@editorjs/paragraph';
+	import SimpleImage from '@/utils/simple-image';
 
 	let titleInput;
 	let notes = [];
@@ -166,7 +167,8 @@ async function initializeEditor() {
             header: Header,
             list: List,
             checklist: Checklist,
-            paragraph: Paragraph
+            paragraph: Paragraph,
+			image: SimpleImage
         },
         onChange: () => {
             handleInput();
@@ -495,26 +497,22 @@ async function saveNoteImmediately() {
 			 <Resizable.Pane defaultSize={75} minSize={60} maxSize={85}>
 				 <div class="flex h-full">
 					 <div class="flex flex-grow flex-col overflow-y-scroll p-4 relative">
-						 <div class="mb-4 flex items-center">
-							 <IconNote class="mr-2 text-slate-11 dark:text-slate-2" />
-							 <input
-								 type="text"
-								 bind:value={title}
-								 bind:this={titleInput}
-								 on:input={handleInput}
-								 on:keydown={handleKeydown}
-								 class="w-full border-none bg-transparent text-2xl font-bold text-slate-12 placeholder-slate-11 focus:outline-none dark:text-slate-1 dark:placeholder-slate-3"
-								 placeholder="Note Title"
-								 disabled={!currentNote}
-							 />
-						 </div>
 						 <div id="editor" class="note-editor h-full w-full ">
-							<input
-							  bind:value={title}
-							  on:input={handleInput}
-							  placeholder="Note title"
-							/>
-							<div id="editorjs"></div>
+							 <div class="mb-4 flex items-center">
+								 <IconNote class="mr-2 text-slate-11 dark:text-slate-2" />
+								 <input
+									 type="text"
+									 bind:value={title}
+									 bind:this={titleInput}
+									 on:input={handleInput}
+									 on:keydown={handleKeydown}
+									 class="w-full border-none bg-transparent text-2xl font-bold text-slate-12 placeholder-slate-11 outline-none focus:outline-none dark:text-slate-1 dark:placeholder-slate-3"
+									 placeholder="Note Title"
+									 disabled={!currentNote}
+								 />
+							 </div>
+				
+							<div id="editorjs" ></div>
 						  </div>
 					 </div>
 				 </div>
@@ -537,8 +535,56 @@ async function saveNoteImmediately() {
 
 	#editor, .notes-list {
 		height: calc(100vh - 64px);
-		margin-top: 64px;
+		margin-top: 8rem;
 	}
+
+
+	:global(.simple-image) {
+    padding: 20px;
+    background-color: #f3f3f3;
+    border: 1px solid #e3e3e3;
+    border-radius: 3px;
+  }
+
+  :global(.simple-image input) {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e3e3e3;
+    border-radius: 3px;
+    margin-bottom: 10px;
+  }
+
+  :global(.simple-image button) {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+
+  :global(.simple-image__dropzone) {
+    border: 2px dashed #ccc;
+    border-radius: 20px;
+    width: 100%;
+    margin: 10px 0;
+    padding: 20px;
+    text-align: center;
+  }
+
+  :global(.simple-image__dropzone.highlight) {
+    border-color: purple;
+  }
+
+  :global(.simple-image__picture) {
+    max-width: 100%;
+    cursor: pointer;
+  }
 
 	/* Add more global styles for Editor.js elements as needed */
 </style>
