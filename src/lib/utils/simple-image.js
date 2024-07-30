@@ -1,4 +1,5 @@
 // src/lib/editor/SimpleImage.js
+import { toast } from "svelte-sonner";
 
 export default class SimpleImage {
   static get toolbox() {
@@ -24,7 +25,7 @@ export default class SimpleImage {
     this.wrapper.classList.add('simple-image');
 
     if (this.data && this.data.url) {
-      this._createImage(this.data.url);
+      this._createImage(this.data.url, true);
       return this.wrapper;
     }
 
@@ -32,16 +33,27 @@ export default class SimpleImage {
     return this.wrapper;
   }
 
-  _createImage(url) {
+  _createImage(url, isInitialRender = false) {
     const image = document.createElement('img');
     image.src = url;
     image.classList.add('simple-image__picture');
 
+    const input = document.createElement('input');
+    input.value = url;
+    input.classList.add('simple-image__url');
+    input.addEventListener('click', () => input.select());
+    input.addEventListener('change', () => this._handleUrlChange(input.value));
+
     this.wrapper.innerHTML = '';
     this.wrapper.appendChild(image);
+    this.wrapper.appendChild(input);
+
+    if (!isInitialRender) {
+      image.classList.add('simple-image__picture--preview');
+    }
 
     image.addEventListener('click', () => {
-      this._createImageSelector();
+      image.classList.toggle('simple-image__picture--preview');
     });
   }
 
@@ -60,6 +72,7 @@ export default class SimpleImage {
     input.addEventListener('paste', (event) => {
       this._pasted(event);
     });
+    input.addEventListener('change', () => this._handleUrlChange(input.value));
 
     this.setupDragAndDrop(dropzone);
   }
@@ -113,25 +126,33 @@ export default class SimpleImage {
     const pastedData = event.clipboardData || window.clipboardData;
     const pastedText = pastedData.getData('text');
     
-    if (this._isURL(pastedText)) {
-      this._createImage(pastedText);
+    this._handleUrlChange(pastedText);
+  }
+
+  _handleUrlChange(url) {
+    if (this._isValidImageUrl(url)) {
+      this._createImage(url);
+    } else {
+      toast.error("Invalid image URL", {
+        description: "Please enter a valid image URL",
+      });
     }
   }
 
-  _isURL(str) {
-    const pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
-      '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
-      '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-      '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-      '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-      '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
-    return !!pattern.test(str);
+  _isValidImageUrl(url) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
   }
 
   save(blockContent) {
     const image = blockContent.querySelector('img');
+    const input = blockContent.querySelector('input');
     return {
-      url: image ? image.src : ''
+      url: image ? image.src : (input ? input.value : '')
     };
   }
 }
