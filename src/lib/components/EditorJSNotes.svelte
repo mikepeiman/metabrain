@@ -226,13 +226,22 @@
 					});
 					markdown += '\n';
 					break;
+
 				case 'image':
-					const caption = block.data.caption ? ` "${block.data.caption}"` : '';
-					markdown += `![${block.data.caption}](${block.data.file.url}${caption})`;
-					if (block.data.withBorder) markdown += '{.with-border}';
-					if (block.data.withBackground) markdown += '{.with-background}';
-					if (block.data.stretched) markdown += '{.stretched}';
-					markdown += '\n\n';
+					const imageUrl = block.data.file.url;
+					const caption = block.data.caption || '';
+					let imageMarkdown = `![${caption}](${imageUrl})`;
+
+					const classes = [];
+					if (block.data.withBorder) classes.push('with-border');
+					if (block.data.withBackground) classes.push('with-background');
+					if (block.data.stretched) classes.push('stretched');
+
+					if (classes.length > 0) {
+						imageMarkdown += `{.${classes.join(' ')}}`;
+					}
+
+					markdown += imageMarkdown + '\n\n';
 					break;
 				case 'quote':
 					markdown += `> ${block.data.text}\n`;
@@ -270,7 +279,9 @@
 						endpoints: {
 							byFile: '/api/uploadImage', // Your file upload endpoint
 							byUrl: '/api/fetchImageUrl' // Your URL fetch endpoint
-						}
+						},
+						field: 'image',
+						types: 'image/*'
 					},
 					uploader: {
 						uploadByFile(file) {
@@ -354,19 +365,21 @@
 	}, 1000);
 
 	async function saveNote() {
-		if (!currentNote || !$currentUser) return;
-		try {
-			const savedData = await editor.save();
-			await pb.collection('notes').update(currentNote.id, {
-				title,
-				content: editorJSToMarkdown(savedData)
-			});
-			localStorage.setItem('lastEditedNoteId', currentNote.id);
-			updateNoteInList(currentNote.id, title);
-		} catch (error) {
-			console.error('Failed to save note', error);
-		}
-	}
+    if (!currentNote || !$currentUser) return;
+    try {
+        const savedData = await editor.save();
+        const markdownContent = editorJSToMarkdown(savedData);
+        await pb.collection('notes').update(currentNote.id, {
+            title,
+            content: markdownContent,
+            editorJSData: JSON.stringify(savedData)  // Save the full EditorJS data
+        });
+        localStorage.setItem('lastEditedNoteId', currentNote.id);
+        updateNoteInList(currentNote.id, title);
+    } catch (error) {
+        console.error('Failed to save note', error);
+    }
+}
 
 	async function saveNoteImmediately() {
 		if (!currentNote || !$currentUser) return;
