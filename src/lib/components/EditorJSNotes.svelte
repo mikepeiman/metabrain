@@ -271,6 +271,11 @@
 			tools: {
 				header: Header,
 				list: List,
+				code: CodeTool,
+				delimiter: Delimiter,
+				table: Table,
+				quote: Quote,
+
 				checklist: Checklist,
 				paragraph: Paragraph,
 				image: {
@@ -323,6 +328,8 @@
 		}
 	}
 
+
+
 	async function selectNote(note) {
 		if (!note) return console.error('Attempted to select undefined note');
 		if (currentNote) await saveNoteImmediately();
@@ -331,7 +338,11 @@
 		localStorage.setItem('lastEditedNoteId', note.id);
 
 		editor.isReady.then(() => {
-			editor.render(markdownToEditorJS(note.content));
+			if (note.editorJSData) {
+				editor.render(JSON.parse(note.editorJSData));
+			} else {
+				editor.render(markdownToEditorJS(note.content));
+			}
 		});
 	}
 
@@ -365,21 +376,21 @@
 	}, 1000);
 
 	async function saveNote() {
-    if (!currentNote || !$currentUser) return;
-    try {
-        const savedData = await editor.save();
-        const markdownContent = editorJSToMarkdown(savedData);
-        await pb.collection('notes').update(currentNote.id, {
-            title,
-            content: markdownContent,
-            editorJSData: JSON.stringify(savedData)  // Save the full EditorJS data
-        });
-        localStorage.setItem('lastEditedNoteId', currentNote.id);
-        updateNoteInList(currentNote.id, title);
-    } catch (error) {
-        console.error('Failed to save note', error);
-    }
-}
+		if (!currentNote || !$currentUser) return;
+		try {
+			const savedData = await editor.save();
+			const markdownContent = editorJSToMarkdown(savedData);
+			await pb.collection('notes').update(currentNote.id, {
+				title,
+				content: markdownContent,
+				editorJSData: JSON.stringify(savedData) // Save the full EditorJS data
+			});
+			localStorage.setItem('lastEditedNoteId', currentNote.id);
+			updateNoteInList(currentNote.id, title);
+		} catch (error) {
+			console.error('Failed to save note', error);
+		}
+	}
 
 	async function saveNoteImmediately() {
 		if (!currentNote || !$currentUser) return;
