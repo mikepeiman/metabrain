@@ -40,7 +40,7 @@
 	import Delimiter from '@editorjs/delimiter';
 	import Table from '@editorjs/table';
 	import { tasklist } from '@mdit/plugin-tasklist';
-	// import { tasklists } from 'markdown-it-task-lists';
+	import tasklists  from 'markdown-it-task-lists';
 
 	let titleInput;
 	let notes = [];
@@ -87,7 +87,7 @@
 
 	import MarkdownIt from 'markdown-it';
 
-	const md = new MarkdownIt().use(tasklist);
+	const md = new MarkdownIt().use(tasklists);
 
 	function markdownToEditorJS(markdown) {
 		const html = md.render(markdown);
