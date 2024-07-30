@@ -13,6 +13,26 @@
 
 	let open = false;
 
+	const navigationItems = [
+    { label: 'Home', path: '/' },
+    { label: 'Skype parsing', path: '/skype' },
+    { label: 'Notes Milkdown', path: '/notes' },
+    { label: 'Notes EditorJS', path: '/notes2' },
+    { label: 'Dashboard', path: '/dashboard' }
+  ];
+
+  const suggestionItems = [
+    { label: 'Calendar', icon: Calendar },
+    { label: 'Search Emoji', icon: Face },
+    { label: 'Launch', icon: Rocket }
+  ];
+
+  const settingsItems = [
+    { label: 'Profile', icon: Person, shortcut: '⌘P' },
+    { label: 'Settings', icon: Gear, shortcut: '⌘S' },
+    { label: 'Logout', icon: Exit, shortcut: '⌘Q', action: logout }
+  ];
+
 	function getInputElement(): HTMLInputElement | null {
 		return document.querySelector('[data-cmdk-input]');
 	}
@@ -53,80 +73,42 @@
 <Command.Dialog bind:open class="max-w-[450px] rounded-lg border shadow-md">
 	<Command.Input placeholder="Type a command or search..." />
 	<Command.List>
-		<Command.Empty>No results found.</Command.Empty>
-		<Command.Group heading="Navigation">
-			<Command.Item onSelect={() => handleSelect('/')}>
-				<button
-					class="w-full text-start focus:outline-none"
-					on:click={() => handleSelect('/')}
-					on:keydown={(e) => handleKeydown(e, '/')}
-				>
-					Home
-				</button>
-			</Command.Item>
-			<Command.Item onSelect={() => handleSelect('/skype')}>
-				<button
-					class="w-full text-start focus:outline-none"
-					on:click={() => handleSelect('/skype')}
-					on:keydown={(e) => handleKeydown(e, '/skype')}
-				>
-					Skype parsing
-				</button>
-			</Command.Item>
-			<Command.Item onSelect={() => handleSelect('/notes')}>
-				<button
-					class="w-full text-start focus:outline-none"
-					on:click={() => handleSelect('/notes')}
-					on:keydown={(e) => handleKeydown(e, '/notes')}
-				>
-					Notes DB
-				</button>
-			</Command.Item>
-			<Command.Item onSelect={() => handleSelect('/dashboard')}>
-				<button
-					class="w-full text-start focus:outline-none"
-					on:click={() => handleSelect('/dashboard')}
-					on:keydown={(e) => handleKeydown(e, '/dashboard')}
-				>
-					Dashboard
-				</button>
-			</Command.Item>
-		</Command.Group>
-		<!-- ... rest of the component remains the same ... -->
-
-		<Command.Group heading="Suggestions">
-			<Command.Item>
-				<Calendar class="mr-2 h-4 w-4" />
-				<span>Calendar</span>
-			</Command.Item>
-			<Command.Item>
-				<Face class="mr-2 h-4 w-4" />
-				<span>Search Emoji</span>
-			</Command.Item>
-			<Command.Item>
-				<Rocket class="mr-2 h-4 w-4" />
-				<span>Launch</span>
-			</Command.Item>
-		</Command.Group>
-		<Command.Separator />
-		<Command.Group heading="Settings">
-			<Command.Item>
-				<Person class="mr-2 h-4 w-4" />
-				<span>Profile</span>
-				<Command.Shortcut>⌘P</Command.Shortcut>
-			</Command.Item>
-			<Command.Item>
-				<Gear class="mr-2 h-4 w-4" />
-				<span>Settings</span>
-				<Command.Shortcut>⌘S</Command.Shortcut>
-			</Command.Item>
-			<Command.Item onSelect={() => logout()}>
-
-					<Exit class="mr-2 h-4 w-4" />
-					<span>Logout</span>
-
-				<Command.Shortcut>⌘Q</Command.Shortcut>
-			</Command.Item>
-		</Command.Group>
+	  <Command.Empty>No results found.</Command.Empty>
+	  <Command.Group heading="Navigation">
+		{#each navigationItems as item}
+		  <Command.Item onSelect={() => handleSelect(item.path)}>
+			<button
+			  class="w-full text-start focus:outline-none"
+			  on:click={() => handleSelect(item.path)}
+			  on:keydown={(e) => handleKeydown(e, item.path)}
+			>
+			  {item.label}
+			</button>
+		  </Command.Item>
+		{/each}
+	  </Command.Group>
+  
+	  <Command.Group heading="Suggestions">
+		{#each suggestionItems as item}
+		  <Command.Item>
+			<svelte:component this={item.icon} class="mr-2 h-4 w-4" />
+			<span>{item.label}</span>
+		  </Command.Item>
+		{/each}
+	  </Command.Group>
+  
+	  <Command.Separator />
+  
+	  <Command.Group heading="Settings">
+		{#each settingsItems as item}
+		  <Command.Item onSelect={item.action || (() => {})}>
+			<svelte:component this={item.icon} class="mr-2 h-4 w-4" />
+			<span>{item.label}</span>
+			{#if item.shortcut}
+			  <Command.Shortcut>{item.shortcut}</Command.Shortcut>
+			{/if}
+		  </Command.Item>
+		{/each}
+	  </Command.Group>
 	</Command.List>
-</Command.Dialog>
+  </Command.Dialog>

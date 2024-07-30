@@ -267,6 +267,7 @@ async function saveNoteImmediately() {
 				sort: `${sortDirection === 'desc' ? '-' : ''}${sortBy}`
 			});
 			notes = resultList.items;
+			console.log(`🚀 ~ loadNotes ~ notes:`, notes)
 
 			if (sortBy === 'title') {
 				notes.sort((a, b) => {
@@ -389,13 +390,13 @@ async function saveNoteImmediately() {
 
 <h1>EditorJS</h1>
 
-<div class="notes-container">
-	<div class="notes-list">
+<div class="notes-container  overflow-hidden">
+
 	  <!-- ... (your existing notes list UI) ... -->
 	  <main class="editorjs-notes bg-slate-1 text-slate-12 dark:bg-slate-12 dark:text-slate-1">
-		 <Resizable.PaneGroup direction="horizontal" class="h-full">
+		 <Resizable.PaneGroup direction="horizontal" class="h-full ">
 			 <Resizable.Pane defaultSize={25} minSize={15} maxSize={40}>
-				 <div class="h-full overflow-y-auto bg-slate-2 p-4 dark:bg-slate-12">
+				 <div class="notes-list  overflow-y-auto bg-slate-2 p-4 dark:bg-slate-12">
 					 <div class="mb-4 flex items-center justify-between">
 						 <h2 class="text-xl font-bold text-slate-12 dark:text-slate-1">Notes</h2>
 						 <Button
@@ -408,7 +409,7 @@ async function saveNoteImmediately() {
 							 Create
 						 </Button>
 					 </div>
-					 <div class="mb-4">
+					 <div class="mb-4 ">
 						 <Select.Root onSelectedChange={handleSortChange} value={sortBy}>
 							 <Select.Trigger
 								 class="w-full bg-slate-3 text-slate-4 hover:bg-slate-4 hover:text-slate-12 dark:bg-slate-12 dark:text-slate-2 dark:hover:bg-slate-9 dark:hover:text-slate-1"
@@ -507,7 +508,7 @@ async function saveNoteImmediately() {
 								 disabled={!currentNote}
 							 />
 						 </div>
-						 <div id="editor" class="note-editor absolute top-[20rem]">
+						 <div id="editor" class="note-editor h-full w-full ">
 							<input
 							  bind:value={title}
 							  on:input={handleInput}
@@ -520,7 +521,7 @@ async function saveNoteImmediately() {
 			 </Resizable.Pane>
 		 </Resizable.PaneGroup>
 	 </main> 
-	</div>
+
 
   </div>
 
@@ -532,6 +533,11 @@ async function saveNoteImmediately() {
 
 	:global(.ce-block) {
 		/* Styles for Editor.js blocks */
+	}
+
+	#editor, .notes-list {
+		height: calc(100vh - 64px);
+		margin-top: 64px;
 	}
 
 	/* Add more global styles for Editor.js elements as needed */

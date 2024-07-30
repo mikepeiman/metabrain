@@ -47,7 +47,7 @@
 	{:else}
 		<MambaHeader />
 		<SideMenuLeft />
-		<div class="flex h-full w-full items-center justify-center">
+		<div class="layout-wrapper flex h-full w-full items-center justify-center overflow-y-hidden">
 			{#if isLoggedIn}
 				<CommandPalette />
 				<Toaster />
