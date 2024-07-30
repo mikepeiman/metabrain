@@ -38,7 +38,7 @@
 	}
 
 	function handleGlobalKeydown(e: KeyboardEvent) {
-		console.log(`🚀 ~ handleGlobalKeydown ~ e:`, e)
+		// console.log(`🚀 ~ handleGlobalKeydown ~ e:`, e)
 		if ((e.key === 'k' || e.key === 'p') && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			// open = !open;

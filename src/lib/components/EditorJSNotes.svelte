@@ -39,6 +39,8 @@
 	import CodeTool from '@editorjs/code';
 	import Delimiter from '@editorjs/delimiter';
 	import Table from '@editorjs/table';
+	import { tasklist } from '@mdit/plugin-tasklist';
+	// import { tasklists } from 'markdown-it-task-lists';
 
 	let titleInput;
 	let notes = [];
@@ -85,7 +87,7 @@
 
 	import MarkdownIt from 'markdown-it';
 
-	const md = new MarkdownIt();
+	const md = new MarkdownIt().use(tasklist);
 
 	function markdownToEditorJS(markdown) {
 		const html = md.render(markdown);
@@ -119,14 +121,17 @@
 						});
 						break;
 					case 'ul':
-						if (node.classList.contains('checklist')) {
+						if (node.classList.contains('contains-task-list')) {
 							blocks.push({
 								type: 'checklist',
 								data: {
-									items: Array.from(node.children).map((li) => ({
-										text: li.textContent,
-										checked: li.classList.contains('checked')
-									}))
+									items: Array.from(node.children).map((li) => {
+										const checkbox = li.querySelector('input[type="checkbox"]');
+										return {
+											text: li.textContent.trim(),
+											checked: checkbox ? checkbox.checked : false
+										};
+									})
 								}
 							});
 						} else {
@@ -134,7 +139,7 @@
 								type: 'list',
 								data: {
 									style: 'unordered',
-									items: Array.from(node.children).map((li) => li.innerHTML)
+									items: Array.from(node.children).map((li) => li.innerHTML.trim())
 								}
 							});
 						}
@@ -144,7 +149,7 @@
 							type: 'list',
 							data: {
 								style: 'ordered',
-								items: Array.from(node.children).map((li) => li.innerHTML)
+								items: Array.from(node.children).map((li) => li.innerHTML.trim())
 							}
 						});
 						break;
@@ -210,12 +215,14 @@
 				case 'paragraph':
 					markdown += block.data.text + '\n\n';
 					break;
+
 				case 'list':
 					block.data.items.forEach((item, index) => {
+						const indent = '  '.repeat(item.indent || 0);
 						if (block.data.style === 'ordered') {
-							markdown += `${index + 1}. ${item}\n`;
+							markdown += `${indent}${index + 1}. ${item}\n`;
 						} else {
-							markdown += `- ${item}\n`;
+							markdown += `${indent}- ${item}\n`;
 						}
 					});
 					markdown += '\n';
@@ -228,20 +235,12 @@
 					break;
 
 				case 'image':
-					const imageUrl = block.data.file.url;
-					const caption = block.data.caption || '';
-					let imageMarkdown = `![${caption}](${imageUrl})`;
-
-					const classes = [];
-					if (block.data.withBorder) classes.push('with-border');
-					if (block.data.withBackground) classes.push('with-background');
-					if (block.data.stretched) classes.push('stretched');
-
-					if (classes.length > 0) {
-						imageMarkdown += `{.${classes.join(' ')}}`;
-					}
-
-					markdown += imageMarkdown + '\n\n';
+					const caption = block.data.caption ? ` "${block.data.caption}"` : '';
+					markdown += `![${block.data.caption || ''}](${block.data.file.url}${caption})`;
+					if (block.data.withBorder) markdown += '{.with-border}';
+					if (block.data.withBackground) markdown += '{.with-background}';
+					if (block.data.stretched) markdown += '{.stretched}';
+					markdown += '\n\n';
 					break;
 				case 'quote':
 					markdown += `> ${block.data.text}\n`;
@@ -265,18 +264,33 @@
 		return markdown.trim();
 	}
 
+	function preprocessMarkdown(markdown) {
+		// Handle various checkbox syntaxes
+		return markdown.replace(/^(-|\*)\s*\[([ xX])\]\s*/gm, (match, bullet, checked) => {
+			return `- [${checked.toLowerCase() === 'x' ? 'x' : ' '}] `;
+		});
+	}
+
+	// Use this function before converting to EditorJS format
+	// const editorJSData = markdownToEditorJS(preprocessMarkdown(markdownContent));
+
 	async function initializeEditor() {
 		editor = new EditorJS({
 			holder: 'editor',
 			tools: {
 				header: Header,
-				list: List,
 				code: CodeTool,
 				delimiter: Delimiter,
 				table: Table,
 				quote: Quote,
-
-				checklist: Checklist,
+				list: {
+					class: List,
+					inlineToolbar: true
+				},
+				checklist: {
+					class: Checklist,
+					inlineToolbar: true
+				},
 				paragraph: Paragraph,
 				image: {
 					class: ImageTool,
@@ -328,8 +342,6 @@
 		}
 	}
 
-
-
 	async function selectNote(note) {
 		if (!note) return console.error('Attempted to select undefined note');
 		if (currentNote) await saveNoteImmediately();
@@ -339,7 +351,13 @@
 
 		editor.isReady.then(() => {
 			if (note.editorJSData) {
-				editor.render(JSON.parse(note.editorJSData));
+				try {
+					const editorData = JSON.parse(note.editorJSData);
+					editor.render(editorData);
+				} catch (error) {
+					console.error('Failed to parse EditorJS data, falling back to Markdown', error);
+					editor.render(markdownToEditorJS(note.content));
+				}
 			} else {
 				editor.render(markdownToEditorJS(note.content));
 			}
@@ -407,6 +425,7 @@
 			toast.info('Failed to save note', error);
 		}
 	}
+
 	async function loadNotes() {
 		isLoading = true;
 		error = null;
