@@ -40,7 +40,7 @@
 	import Delimiter from '@editorjs/delimiter';
 	import Table from '@editorjs/table';
 	import { tasklist } from '@mdit/plugin-tasklist';
-	import tasklists  from 'markdown-it-task-lists';
+	import tasklists from 'markdown-it-task-lists';
 
 	let titleInput;
 	let notes = [];
@@ -128,7 +128,7 @@
 									items: Array.from(node.children).map((li) => {
 										const checkbox = li.querySelector('input[type="checkbox"]');
 										return {
-											text: li.textContent.trim(),
+											text: li.textContent.replace(/^\[[ xX]\]\s*/, '').trim(),
 											checked: checkbox ? checkbox.checked : false
 										};
 									})
@@ -145,6 +145,29 @@
 						}
 						break;
 					case 'ol':
+						if (node.classList.contains('contains-task-list')) {
+							blocks.push({
+								type: 'checklist',
+								data: {
+									items: Array.from(node.children).map((li) => {
+										const checkbox = li.querySelector('input[type="checkbox"]');
+										return {
+											text: li.textContent.replace(/^\d+\.\s*\[[ xX]\]\s*/, '').trim(),
+											checked: checkbox ? checkbox.checked : false
+										};
+									})
+								}
+							});
+						} else {
+							blocks.push({
+								type: 'list',
+								data: {
+									style: 'ordered',
+									items: Array.from(node.children).map((li) => li.innerHTML.trim())
+								}
+							});
+						}
+						break;
 						blocks.push({
 							type: 'list',
 							data: {
@@ -161,9 +184,9 @@
 									url: node.src
 								},
 								caption: node.alt || '',
-								withBorder: node.classList.contains('with-border'),
-								withBackground: node.classList.contains('with-background'),
-								stretched: node.classList.contains('stretched')
+								withBorder: node.className.includes('with-border'),
+								withBackground: node.className.includes('with-background'),
+								stretched: node.className.includes('stretched')
 							}
 						});
 						break;
@@ -265,9 +288,10 @@
 	}
 
 	function preprocessMarkdown(markdown) {
-		// Handle various checkbox syntaxes
-		return markdown.replace(/^(-|\*)\s*\[([ xX])\]\s*/gm, (match, bullet, checked) => {
-			return `- [${checked.toLowerCase() === 'x' ? 'x' : ' '}] `;
+		return markdown.replace(/^(\d+\.|\*|-)\s*\[([ xX])\]\s*/gm, (match, listMarker, checked) => {
+			const isOrdered = /^\d+\./.test(listMarker);
+			const checkedStatus = checked.toLowerCase().trim() === 'x' ? 'x' : ' ';
+			return `${isOrdered ? '1. ' : '- '}[${checkedStatus}] `;
 		});
 	}
 
@@ -283,12 +307,16 @@
 				delimiter: Delimiter,
 				table: Table,
 				quote: Quote,
+				listCycle: {
+					class: ListCycleTool,
+					shortcut: 'CMD+\\'
+				},
 				list: {
 					class: List,
 					inlineToolbar: true
 				},
 				checklist: {
-					class: Checklist,
+					class: CustomChecklistTool,
 					inlineToolbar: true
 				},
 				paragraph: Paragraph,
@@ -299,14 +327,17 @@
 							byFile: '/api/uploadImage', // Your file upload endpoint
 							byUrl: '/api/fetchImageUrl' // Your URL fetch endpoint
 						},
+						additionalRequestData: {
+							noteId: currentNote ? currentNote?.id : null // Make sure to update this when the note changes
+						},
 						field: 'image',
 						types: 'image/*'
 					},
 					uploader: {
 						uploadByFile(file) {
-							console.log('Uploading file:', file);
 							const formData = new FormData();
 							formData.append('image', file);
+							formData.append('noteId', currentNote.id); // Make sure currentNote.id is available
 
 							return fetch('/api/uploadImage', {
 								method: 'POST',
@@ -316,11 +347,27 @@
 								.then((result) => {
 									console.log('Upload result:', result);
 									if (result.success) {
-										return result;
+										return {
+											success: 1,
+											file: {
+												url: result.file.url, // Use the PocketBase URL
+												id: result.file.id
+											}
+										};
 									}
 									throw new Error(result.error || 'Upload failed');
 								});
 						}
+					}
+				}
+			},
+			shortcuts: {
+				'CMD+\\': (event) => {
+					console.log('Shortcut CMD+\\ triggered');
+					event.preventDefault();
+					const tool = editor.toolbar.toolsInstances.listCycle;
+					if (tool) {
+						tool.surround(editor.selection.range);
 					}
 				}
 			},
@@ -342,6 +389,139 @@
 		}
 	}
 
+	class CustomChecklistTool extends Checklist {
+		static get sanitize() {
+			return {
+				items: {
+					text: true,
+					checked: false
+				}
+			};
+		}
+
+		static get pasteConfig() {
+			return {
+				patterns: {
+					checkbox: /^\s*(\[[ xX]\])\s*(.*)/gm
+				},
+				callbacks: {
+					checkbox: (matches) => {
+						return {
+							text: matches[2].trim(),
+							checked: matches[1].toLowerCase().includes('x')
+						};
+					}
+				}
+			};
+		}
+	}
+
+	class ListCycleTool {
+		static get isInline() {
+			return true;
+		}
+
+		get state() {
+			return this._state;
+		}
+
+		set state(state) {
+			this._state = state;
+			this.button.classList.toggle(this.api.styles.inlineToolButtonActive, state);
+		}
+
+		constructor({ api }) {
+			this.api = api;
+			this.button = null;
+			this._state = false;
+		}
+
+		render() {
+			this.button = document.createElement('button');
+			this.button.type = 'button';
+			this.button.innerHTML = '⇌';
+			this.button.classList.add(this.api.styles.inlineToolButton);
+			return this.button;
+		}
+
+		surround(range) {
+			console.log('ListCycleTool surround method called');
+			if (!range) {
+				return;
+			}
+
+			const parentBlock = this.api.blocks.getBlockByIndex(this.api.blocks.getCurrentBlockIndex());
+
+			if (!parentBlock) {
+				return;
+			}
+
+			const blockType = parentBlock.name;
+			const blockData = parentBlock.call('core', 'sanitizeConfig');
+
+			let newType, newData;
+
+			switch (blockType) {
+				case 'paragraph':
+					newType = 'list';
+					newData = {
+						style: 'unordered',
+						items: [range.extractContents().textContent]
+					};
+					break;
+				case 'list':
+					if (blockData.style === 'unordered') {
+						newType = 'checklist';
+						newData = {
+							items: [
+								{
+									text: range.extractContents().textContent,
+									checked: false
+								}
+							]
+						};
+					} else {
+						newType = 'list';
+						newData = {
+							style: 'unordered',
+							items: [range.extractContents().textContent]
+						};
+					}
+					break;
+				case 'checklist':
+					const item = blockData.items.find(
+						(item) => item.text === range.extractContents().textContent
+					);
+					if (item && !item.checked) {
+						item.checked = true;
+						newType = 'checklist';
+						newData = blockData;
+					} else {
+						newType = 'paragraph';
+						newData = {
+							text: range.extractContents().textContent
+						};
+					}
+					break;
+				default:
+					return;
+			}
+
+			this.api.blocks.delete(this.api.blocks.getCurrentBlockIndex());
+			this.api.blocks.insert(newType, newData);
+		}
+
+		checkState() {
+			console.log('ListCycleTool checkState method called');
+			const block = this.api.blocks.getBlockByIndex(this.api.blocks.getCurrentBlockIndex());
+			this.state = block && (block.name === 'list' || block.name === 'checklist');
+		}
+
+		static get shortcut() {
+			return 'CMD+\\';
+		}
+	}
+
 	async function selectNote(note) {
 		if (!note) return console.error('Attempted to select undefined note');
 		if (currentNote) await saveNoteImmediately();
@@ -349,18 +529,27 @@
 		title = note.title;
 		localStorage.setItem('lastEditedNoteId', note.id);
 
-		editor.isReady.then(() => {
+		editor.isReady.then(async () => {
+			let editorData;
 			if (note.editorJSData) {
 				try {
-					const editorData = JSON.parse(note.editorJSData);
-					editor.render(editorData);
+					editorData = JSON.parse(note.editorJSData);
+					// Ensure image URLs are up to date
+					for (let block of editorData.blocks) {
+						if (block.type === 'image' && block.data.file.id) {
+							const image = await pb.collection('images').getOne(block.data.file.id);
+							block.data.file.url = pb.files.getUrl(image, image.file);
+						}
+					}
 				} catch (error) {
-					console.error('Failed to parse EditorJS data, falling back to Markdown', error);
-					editor.render(markdownToEditorJS(note.content));
+					console.error('Failed to parse EditorJS data:', error);
 				}
-			} else {
-				editor.render(markdownToEditorJS(note.content));
 			}
+			if (!editorData) {
+				editorData = markdownToEditorJS(note.content);
+			}
+			console.log('Loading note:', editorData);
+			editor.render(editorData);
 		});
 	}
 
@@ -398,11 +587,18 @@
 		try {
 			const savedData = await editor.save();
 			const markdownContent = editorJSToMarkdown(savedData);
+			// Extract image IDs from the saved data
+			const imageIds = savedData.blocks
+				.filter((block) => block.type === 'image')
+				.map((block) => block.data.file.id);
+
 			await pb.collection('notes').update(currentNote.id, {
 				title,
 				content: markdownContent,
-				editorJSData: JSON.stringify(savedData) // Save the full EditorJS data
+				editorJSData: JSON.stringify(savedData),
+				images: imageIds // Update the relation to images
 			});
+			console.log('Note saved:', { markdown: markdownContent, editorJS: savedData });
 			localStorage.setItem('lastEditedNoteId', currentNote.id);
 			updateNoteInList(currentNote.id, title);
 		} catch (error) {
