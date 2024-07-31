@@ -326,14 +326,14 @@
 				},
 				paragraph: Paragraph,
 				image: {
-					class: ImageTool,
+					class: CustomImageTool,
 					config: {
 						endpoints: {
-							byFile: '/api/uploadImage', // Your file upload endpoint
-							byUrl: '/api/fetchImageUrl' // Your URL fetch endpoint
+							byFile: '/api/uploadImage',
+							byUrl: '/api/fetchImageUrl'
 						},
 						additionalRequestData: {
-							noteId: currentNote ? currentNote?.id : null // Make sure to update this when the note changes
+							noteId: currentNote ? currentNote?.id : null
 						},
 						field: 'image',
 						types: 'image/*'
@@ -344,7 +344,7 @@
 							console.log(`🚀 ~ uploadByFile ~ currentNote:`, currentNote);
 							const formData = new FormData();
 							formData.append('image', file);
-							formData.append('noteId', currentNote.id); // Make sure currentNote.id is available
+							formData.append('noteId', currentNote.id);
 							formData.append('caption', file.caption);
 
 							return fetch('/api/uploadImage', {
@@ -358,7 +358,7 @@
 										return {
 											success: 1,
 											file: {
-												url: result.file.url, // Use the PocketBase URL
+												url: result.file.url,
 												id: result.file.id
 											}
 										};
@@ -384,14 +384,38 @@
 			},
 			data: currentNote ? markdownToEditorJS(currentNote.content) : {}
 		});
-		console.log(`🚀 ~ initializeEditor ~ currentNote:`, currentNote);
 		if (currentNote) {
 			title = currentNote.title;
 			editor.isReady.then(() => {
+				console.log(`🚀 ~ initializeEditor ~ currentNote:`, currentNote);
+				console.log('Image tool:', editor.configuration.tools.image);
 				editor.render(markdownToEditorJS(currentNote.content));
 			});
 		}
 	}
+
+	class CustomImageTool extends ImageTool {
+    constructor({ data, config, api, block, readOnly }) {
+        super({ data, config, api, block, readOnly });
+        console.log('CustomImageTool initialized');
+    }
+
+    render() {
+        console.log('CustomImageTool render method called');
+        return super.render();
+    }
+
+    save(blockContent) {
+        const savedData = super.save(blockContent);
+        console.log('CustomImageTool save method called', savedData);
+        return savedData;
+    }
+
+    // Override the validate method if needed
+    validate(savedData) {
+        return super.validate(savedData);
+    }
+}
 
 	class CustomChecklistTool extends Checklist {
 		static get sanitize() {
@@ -590,6 +614,7 @@
 		if (!currentNote || !$currentUser) return;
 		try {
 			const savedData = await editor.save();
+			console.log(`🚀 ~ saveNote ~ savedData:`, savedData);
 			const markdownContent = editorJSToMarkdown(savedData);
 			// Extract image IDs from the saved data
 			const imageIds = savedData.blocks

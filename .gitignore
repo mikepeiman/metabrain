@@ -1,6 +1,5 @@
 .DS_Store
 node_modules
-pb_migrations
 pb_data
 pb_data/
 *.db

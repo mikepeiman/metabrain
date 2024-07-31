@@ -129,6 +129,6 @@
     </div>
     <p class="text-center text-sm text-slate-11 dark:text-slate-4">
       Don't have an account?
-      <a href="#" class="text-blue-9 hover:underline dark:text-blue-6">Sign up</a>
+      <a href="/register" class="text-blue-9 hover:underline dark:text-blue-6">Sign up</a>
     </p>
   </form>
