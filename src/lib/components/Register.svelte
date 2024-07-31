@@ -41,7 +41,7 @@
 			// Automatically log in the user after registration
 			await pb.collection('users').authWithPassword(email, password);
 
-			console.log(pb.authStore.isValid);
+			console.log(`pb.authStore.isValid ${pb.authStore.isValid}`);
 			console.log(pb.authStore.token);
 			console.log(pb.authStore.model.id);
 

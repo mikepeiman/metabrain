@@ -88,25 +88,44 @@
     }
 
     async function handleSubmit() {
-        isLoading = true;
-        try {
-            const formData = new FormData();
-            formData.append('username', username);
-            formData.append('email', email);
-            formData.append('firstname', firstname);
-            formData.append('lastname', lastname);
-            if (avatarFile) formData.append('avatar', avatarFile);
-            if (bannerFile) formData.append('banner', bannerFile);
+    isLoading = true;
+    try {
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('email', email);
+        formData.append('firstname', firstname);
+        formData.append('lastname', lastname);
+        if (avatarFile) formData.append('avatar', avatarFile);
+        if (bannerFile) formData.append('banner', bannerFile);
 
-            await updateUserProfile(formData);
-            toast.success('Profile updated successfully');
-        } catch (error) {
-            console.error('Error updating profile:', error);
-            toast.error(`Failed to update profile: ${error.message}`);
-        } finally {
-            isLoading = false;
+        await updateUserProfile(formData);
+        toast.success('Profile updated successfully');
+    } catch (error) {
+        let errorMessage = 'An unexpected error occurred during profile update.';
+        
+        if (error && error.data) {
+            console.error('Error details:', error.data);
+            toast.error(`Failed to update profile: ${errorMessage}`);
+            
+            // General error message
+            errorMessage = error.data.message || error.message;
+            
+            // Specific error messages
+            if (error.data.data) {
+                const specificErrors = Object.entries(error.data.data)
+                    .map(([field, fieldError]) => `${field}: ${fieldError.message}`)
+                    .join('; ');
+                
+                if (specificErrors) {
+                    toast.error(`Failed to update profile: ${specificErrors}`);
+                }
+            }
         }
+        
+    } finally {
+        isLoading = false;
     }
+}
 </script>
 
 <Card class="mx-auto w-full max-w-3xl">
