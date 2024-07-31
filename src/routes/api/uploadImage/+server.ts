@@ -10,6 +10,7 @@ export async function POST({ request }) {
     const data = await request.formData();
     const file = data.get('image');
     const noteId = data.get('noteId');
+    const caption = data.get('caption');
 
     if (!file) {
       console.error('No file received');
@@ -39,6 +40,9 @@ export async function POST({ request }) {
     if (noteId) {
       pbFormData.append('note', noteId);
     }
+    if (caption) {
+        pbFormData.append('caption', caption);
+      }
 
     // Upload the file to PocketBase
     const image = await pb.collection('images').create(pbFormData);
@@ -51,13 +55,14 @@ export async function POST({ request }) {
     console.log('PocketBase file URL:', fileUrlDb);
 
     return json({
-      success: 1,
-      file: {
-        localUrl: `/uploads/${filename}`,
-        url: fileUrlDb,
-        id: image.id
-      }
-    });
+        success: 1,
+        file: {
+          localUrl: `/uploads/${filename}`,
+          url: fileUrlDb,
+          id: image.id,
+          caption: caption
+        }
+      });
   } catch (error) {
     console.error('Error in file upload:', error);
     return json({ success: 0, error: error.message });

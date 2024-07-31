@@ -299,6 +299,11 @@
 	// const editorJSData = markdownToEditorJS(preprocessMarkdown(markdownContent));
 
 	async function initializeEditor() {
+		const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
+		if (lastEditedNoteId) {
+			currentNote = notes.find((note) => note.id === lastEditedNoteId);
+			console.log(`🚀 ~ initializeEditor ~ currentNote:`, currentNote);
+		}
 		editor = new EditorJS({
 			holder: 'editor',
 			tools: {
@@ -335,9 +340,12 @@
 					},
 					uploader: {
 						uploadByFile(file) {
+							console.log(`🚀 ~ uploadByFile ~ file:`, file);
+							console.log(`🚀 ~ uploadByFile ~ currentNote:`, currentNote);
 							const formData = new FormData();
 							formData.append('image', file);
 							formData.append('noteId', currentNote.id); // Make sure currentNote.id is available
+							formData.append('caption', file.caption);
 
 							return fetch('/api/uploadImage', {
 								method: 'POST',
@@ -376,16 +384,12 @@
 			},
 			data: currentNote ? markdownToEditorJS(currentNote.content) : {}
 		});
-
-		const lastEditedNoteId = localStorage.getItem('lastEditedNoteId');
-		if (lastEditedNoteId) {
-			currentNote = notes.find((note) => note.id === lastEditedNoteId);
-			if (currentNote) {
-				title = currentNote.title;
-				editor.isReady.then(() => {
-					editor.render(markdownToEditorJS(currentNote.content));
-				});
-			}
+		console.log(`🚀 ~ initializeEditor ~ currentNote:`, currentNote);
+		if (currentNote) {
+			title = currentNote.title;
+			editor.isReady.then(() => {
+				editor.render(markdownToEditorJS(currentNote.content));
+			});
 		}
 	}
 
