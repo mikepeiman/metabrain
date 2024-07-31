@@ -12,7 +12,8 @@
 	const menuItems = [
 		{ href: '#', action: 'expandSidebar', icon: IconArrowRightBar, label: 'collapse menu' },
 		{ href: '/', icon: Home, label: 'Home' },
-		{ href: '/notes', icon: IconNotes, label: "Today's Note" },
+		{ href: '/notes', icon: IconNotes, label: "Milkdown Notes" },
+		{ href: '/notes2', icon: IconNotes, label: "EditorJS Notes" },
 		{ href: '/calendar', icon: CalendarDays, label: 'Calendar View' },
 		{ href: '#', action: 'openCommandPalette', icon: IconSearch, label: 'Quick Switcher' },
 		{ href: '/dashboard', icon: Layout, label: 'Layouts Dashboard' },

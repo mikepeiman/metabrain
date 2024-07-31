@@ -2,6 +2,7 @@
 <script>
 	import { browser } from '$app/environment';
 	import { IconSun, IconMoon } from '@tabler/icons-svelte';
+	import { onDestroy } from 'svelte';
 
 	let isDarkMode = false;
 
@@ -11,6 +12,10 @@
 			isDarkMode = e.matches;
 		});
 	}
+
+	onDestroy(() => {
+  window.removeEventListener('change');
+});
 
 	function toggleDarkMode() {
 		isDarkMode = !isDarkMode;
