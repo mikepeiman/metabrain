@@ -14,6 +14,7 @@
 		{ href: '/', icon: Home, label: 'Home' },
 		{ href: '/notes', icon: IconNotes, label: "Milkdown Notes" },
 		{ href: '/notes2', icon: IconNotes, label: "EditorJS Notes" },
+		{ href: '/notes3', icon: IconNotes, label: "EditorJS Notes v2" },
 		{ href: '/calendar', icon: CalendarDays, label: 'Calendar View' },
 		{ href: '#', action: 'openCommandPalette', icon: IconSearch, label: 'Quick Switcher' },
 		{ href: '/dashboard', icon: Layout, label: 'Layouts Dashboard' },

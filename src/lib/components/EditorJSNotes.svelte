@@ -53,7 +53,7 @@
 	let error = null;
 	let editor;
 	$: noteId = localStorage.getItem('lastEditedNoteId');
-	$: console.log(`🚀 ~ noteId:`, noteId)
+	$: console.log(`🚀 ~ noteId:`, noteId);
 
 	const contextMenuItems = [
 		{ icon: IconExternalLink, text: 'Open in new tab' },
@@ -412,9 +412,18 @@
 		save(blockContent) {
 			const savedData = super.save(blockContent);
 			console.log('CustomImageTool save method called', savedData);
+
 			if (savedData.file && savedData.file.id) {
-				this.api.blocks.update(this.api.blocks.getCurrentBlockIndex(), savedData);
+				// Update the block by its actual index or ID
+				this.api.blocks.update(savedData.id, savedData);
+			} else {
+				// If the image block does not have an ID, you might need to insert it into the block list
+				const newIndex = this.api.blocks.insert('image', savedData);
+				if (newIndex !== -1) {
+					this.api.blocks.update(newIndex, savedData);
+				}
 			}
+
 			return savedData;
 		}
 
@@ -566,7 +575,7 @@
 
 		editor.isReady.then(async () => {
 			let editorData;
-			if (note.editorJSData && note.editorJSData?.length > 0 ) {
+			if (note.editorJSData && note.editorJSData?.length > 0) {
 				try {
 					editorData = JSON.parse(note.editorJSData);
 					// Ensure image URLs are up to date
@@ -610,7 +619,7 @@
 	const handleInput = debounce(async () => {
 		if (currentNote) {
 			const savedData = await editor.save();
-			console.log(`🚀 ~ handleInput ~ savedData:`, savedData)
+			console.log(`🚀 ~ handleInput ~ savedData:`, savedData);
 			currentNote.content = editorJSToMarkdown(savedData);
 			currentNote.title = title;
 			saveNote();
@@ -620,10 +629,38 @@
 
 	async function saveNote() {
 		if (!currentNote || !$currentUser) return;
+
 		try {
 			const savedData = await editor.save();
-			console.log(`🚀 ~ saveNote ~ savedData:`, savedData);
+			savedData.blocks.forEach((block) => {
+				console.log(`🚀 ~ savedData.blocks.forEach ~ block:`, block)
+				if (block.type === 'image' && block.data.file.id) {
+					const image = pb.collection('images').getOne(block.data.file.id);
+					block.data.file.url = pb.files.getUrl(image, image.file);
+				}
+			})
+			console.log(
+				'Image IDs:',
+				savedData.blocks
+					.filter((block) => block.type === 'image')
+					.map((block) => block.data.file.id)
+			);
+			console.log(
+				'Image URLs:',
+				savedData.blocks
+					.filter((block) => block.type === 'image')
+					.map((block) => block.data.file.url)
+			);
+
+			if (savedData.blocks.length > 0 && savedData.blocks[0].type === 'image') {
+				const imageBlockIndex = this.api.blocks.indexOf(savedData.blocks[0]);
+
+				console.log('Image block index:', imageBlockIndex);
+				console.log('Image block ID:', savedData.blocks[imageBlockIndex].data.file.id);
+				console.log('Image block URL:', savedData.blocks[imageBlockIndex].data.file.url);
+			}
 			const markdownContent = editorJSToMarkdown(savedData);
+			console.log(`🚀 ~ saveNote ~ markdownContent:`, markdownContent);
 			// Extract image IDs from the saved data
 			const imageIds = savedData.blocks
 				.filter((block) => block.type === 'image')
