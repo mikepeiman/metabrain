@@ -52,6 +52,8 @@
 	let isLoading = false;
 	let error = null;
 	let editor;
+	$: noteId = localStorage.getItem('lastEditedNoteId');
+	$: console.log(`🚀 ~ noteId:`, noteId)
 
 	const contextMenuItems = [
 		{ icon: IconExternalLink, text: 'Open in new tab' },
@@ -71,6 +73,7 @@
 		{ icon: IconEdit, text: 'Rename...' },
 		{ icon: IconTrash, text: 'Delete', isDanger: true, action: deleteNote }
 	];
+
 	onMount(async () => {
 		if (!$currentUser) return goto('/login');
 		await loadNotes();
@@ -395,27 +398,31 @@
 	}
 
 	class CustomImageTool extends ImageTool {
-    constructor({ data, config, api, block, readOnly }) {
-        super({ data, config, api, block, readOnly });
-        console.log('CustomImageTool initialized');
-    }
+		constructor({ data, config, api, block, readOnly }) {
+			super({ data, config, api, block, readOnly });
+			this.api = api;
+			console.log('CustomImageTool initialized');
+		}
 
-    render() {
-        console.log('CustomImageTool render method called');
-        return super.render();
-    }
+		render() {
+			console.log('CustomImageTool render method called');
+			return super.render();
+		}
 
-    save(blockContent) {
-        const savedData = super.save(blockContent);
-        console.log('CustomImageTool save method called', savedData);
-        return savedData;
-    }
+		save(blockContent) {
+			const savedData = super.save(blockContent);
+			console.log('CustomImageTool save method called', savedData);
+			if (savedData.file && savedData.file.id) {
+				this.api.blocks.update(this.api.blocks.getCurrentBlockIndex(), savedData);
+			}
+			return savedData;
+		}
 
-    // Override the validate method if needed
-    validate(savedData) {
-        return super.validate(savedData);
-    }
-}
+		// Override the validate method if needed
+		validate(savedData) {
+			return super.validate(savedData);
+		}
+	}
 
 	class CustomChecklistTool extends Checklist {
 		static get sanitize() {
@@ -559,7 +566,7 @@
 
 		editor.isReady.then(async () => {
 			let editorData;
-			if (note.editorJSData) {
+			if (note.editorJSData && note.editorJSData?.length > 0 ) {
 				try {
 					editorData = JSON.parse(note.editorJSData);
 					// Ensure image URLs are up to date
@@ -603,12 +610,13 @@
 	const handleInput = debounce(async () => {
 		if (currentNote) {
 			const savedData = await editor.save();
+			console.log(`🚀 ~ handleInput ~ savedData:`, savedData)
 			currentNote.content = editorJSToMarkdown(savedData);
 			currentNote.title = title;
 			saveNote();
 			updateNoteInList(currentNote.id, title);
 		}
-	}, 1000);
+	}, 200);
 
 	async function saveNote() {
 		if (!currentNote || !$currentUser) return;
@@ -630,9 +638,27 @@
 			console.log('Note saved:', { markdown: markdownContent, editorJS: savedData });
 			localStorage.setItem('lastEditedNoteId', currentNote.id);
 			updateNoteInList(currentNote.id, title);
+			console.log(
+				'Image IDs:',
+				savedData.blocks
+					.filter((block) => block.type === 'image')
+					.map((block) => block.data.file.id)
+			);
+			console.log(
+				'Image URLs:',
+				savedData.blocks
+					.filter((block) => block.type === 'image')
+					.map((block) => block.data.file.url)
+			);
 		} catch (error) {
 			console.error('Failed to save note', error);
 		}
+		const note = await pb.collection('notes').getOne(noteId);
+		console.log('Database image IDs:', note.images);
+		console.log(
+			'Database image URLs:',
+			note.images.map((imageId) => pb.files.getUrl(imageId))
+		);
 	}
 
 	async function saveNoteImmediately() {
@@ -681,6 +707,20 @@
 		} finally {
 			isLoading = false;
 		}
+		const note = await pb.collection('notes').getOne(noteId);
+		console.log('Note content:', note.content);
+		// console.log(
+		// 	'Image IDs:',
+		// 	JSON.parse(note.editorJSData)
+		// 		.blocks?.filter((block) => block.type === 'image')
+		// 		.map((block) => block.data.file.id)
+		// );
+		// console.log(
+		// 	'Image URLs:',
+		// 	JSON.parse(note.editorJSData)
+		// 		.blocks?.filter((block) => block.type === 'image')
+		// 		.map((block) => block.data.file.url)
+		// );
 	}
 
 	function handleSortChange(event) {
