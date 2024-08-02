@@ -72,6 +72,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-global-shortcut",
+ "tauri-plugin-window-state",
 ]
 
 [[package]]
@@ -3137,6 +3138,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dfe2be8597fb6c714b7cf325764ad80411470625cfcde3b3a0765a4da463ffec"
 dependencies = [
  "global-hotkey",
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror",
+]
+
+[[package]]
+name = "tauri-plugin-window-state"
+version = "2.0.0-beta.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d508810d4deee50cda21f151f3e3a6d7dc5f3174c8655b9672f5e599b2c844c"
+dependencies = [
+ "bitflags 2.6.0",
  "log",
  "serde",
  "serde_json",

@@ -3,6 +3,7 @@
 use tauri::Emitter;
 use tauri::Manager;
 use tauri_plugin_global_shortcut::{Code, Modifiers, ShortcutState};
+use tauri_plugin_window_state;
 
 fn main() {
   tauri::Builder::default()
@@ -27,6 +28,7 @@ fn main() {
 
           Ok(())
       })
+      .plugin(tauri_plugin_window_state::Builder::default().build())
       .run(tauri::generate_context!())
       .expect("error while running tauri application");
 }

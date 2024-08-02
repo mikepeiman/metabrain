@@ -11,10 +11,21 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { pb, currentUser } from '$utils/pocketbase';
+	import {
+		saveWindowState,
+		restoreStateCurrent,
+		StateFlags
+	} from '@tauri-apps/plugin-window-state';
 
 	let isLoggedIn = false;
 
 	onMount(async () => {
+		// Save the state of all open windows
+		saveWindowState(StateFlags.ALL);
+
+		// Restore the state of the current window
+		restoreStateCurrent(StateFlags.ALL);
+		
 		// Check if the user is logged in
 		isLoggedIn = pb.authStore.isValid;
 		const unlisten = window.__TAURI__.event.listen('navigate', (event) => {
