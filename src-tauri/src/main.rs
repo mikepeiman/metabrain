@@ -1,16 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use tauri::Emitter;
-use tauri::Manager;
-use tauri_plugin_global_shortcut::{Code, Modifiers, ShortcutState};
-use tauri_plugin_window_state;
 
 fn main() {
   tauri::Builder::default()
       .setup(|app| {
           #[cfg(desktop)]
           {
-
+              use tauri::Manager;
+              use tauri_plugin_global_shortcut::{Code, Modifiers, ShortcutState};
 
               app.handle().plugin(
                   tauri_plugin_global_shortcut::Builder::new()
@@ -28,7 +25,6 @@ fn main() {
 
           Ok(())
       })
-      .plugin(tauri_plugin_window_state::Builder::default().build())
       .run(tauri::generate_context!())
       .expect("error while running tauri application");
 }

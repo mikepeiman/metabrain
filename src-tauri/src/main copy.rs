@@ -30,7 +30,7 @@ fn create_native_messaging_manifest(app_handle: &tauri::AppHandle) -> Result<(),
         "path": app_handle.path().app_exe()?.to_string_lossy(),
         "type": "stdio",
         "allowed_origins": [
-            "chrome-extension://your-extension-id/"
+            "chrome-extension://ipjfamokledlemhjhpbomddhenglmoea/"
         ]
     });
 
