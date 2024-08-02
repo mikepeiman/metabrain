@@ -1,0 +1,44 @@
+{
+   "background": {
+      "service_worker": "background.js"
+    }
+   "browser_action": {
+      "default_icon": "img/icon.png",
+      "default_title": "Metabrain"
+   },
+   // "commands": {
+   //    "_execute_browser_action": {
+   //    },
+   //    "save_close_all_windows": {
+   //       "description": "Save and Close all open windows"
+   //    },
+   //    "save_close_current_tab": {
+   //       "description": "Save and Close current tab"
+   //    },
+   //    "save_close_current_window": {
+   //       "description": "Save and Close current window"
+   //    }
+   // },
+   "action": {
+      "default_popup": "popup.html"
+    },
+   "content_security_policy": "script-src 'self' https://www.google-analytics.com https://connect.facebook.net https://apis.google.com https://platform.twitter.com; object-src 'self';",
+   // "default_locale": "en",
+   "description": "Your Operating System For Life",
+   "icons": {
+      "128": "img/128x128.png",
+      "16": "img/favicon.png",
+      "32": "img/32x32.png"
+   },
+   "manifest_version": 2,
+   "minimum_chrome_version": "42.0.0.0",
+   "name": "Metabrain",
+
+   "offline_enabled": true,
+   "optional_permissions": [ "identity.email", "clipboardRead" ],
+   // "options_page": "options.html",
+   "permissions": [ "storage", "tabs", "unlimitedStorage", "chrome://favicon/", "identity" , "nativeMessaging" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "0.1.0",
+   "web_accessible_resources": [ "*" ]
+}

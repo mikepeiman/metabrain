@@ -17,6 +17,9 @@
 	onMount(async () => {
 		// Check if the user is logged in
 		isLoggedIn = pb.authStore.isValid;
+		const unlisten = window.__TAURI__.event.listen('navigate', (event) => {
+			goto(event.payload);
+		});
 
 		// Subscribe to auth state changes
 		pb.authStore.onChange((auth) => {
@@ -25,6 +28,9 @@
 				goto('/login'); // Redirect to login page if logged out
 			}
 		});
+		return () => {
+			unlisten();
+		};
 	});
 
 	// Function to handle successful login

@@ -6,6 +6,7 @@ pb_data/
 /build
 /.svelte-kit
 /package
+src/chrome-extension/TabsOutliner
 .env
 .env.*
 !.env.example
