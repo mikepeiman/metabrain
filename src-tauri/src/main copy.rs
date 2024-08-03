@@ -75,6 +75,8 @@ fn create_native_messaging_manifest(app_handle: &tauri::AppHandle) -> Result<(),
     }
 }
 
+
+
 fn main() {
     let tray_menu = SystemTrayMenu::new()
         .add_item(CustomMenuItem::new("toggle".to_string(), "Toggle"))

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
+  import { page } from '$app/stores';
 	import { pb } from '$lib/utils/pocketbase';
 	import { IconBrandGithub, IconBrandGoogle, IconMail, IconLock } from '@tabler/icons-svelte';
 	
@@ -15,15 +16,22 @@
 			rememberMe = true;
 		}
 	}
+$:  console.log(`🚀 ~ handleLogin ~ route: ${page.route} $page:`, $page)
+  async function handleLogin() {
+    try {
+        await pb.collection('users').authWithPassword(email, password);
 
-	async function handleLogin() {
-		try {
-			await pb.collection('users').authWithPassword(email, password);
-			// goto('/');
-		} catch (error) {
-			errorMessage = 'Invalid email or password';
-		}
-	}
+        // Invalidate the current page to force a reload
+        // await invalidate((url) => url.pathname === $page.url.pathname);
+        
+        // Optionally, you can use goto to reload the current page
+        // await goto($page.url.pathname, { invalidateAll: true });
+        window.location.reload();
+        
+    } catch (error) {
+        errorMessage = 'Invalid email or password';
+    }
+}
 
 	async function loginWithProvider(provider: 'github' | 'google') {
 		try {

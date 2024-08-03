@@ -5,17 +5,22 @@
 	import { onDestroy } from 'svelte';
 
 	let isDarkMode = false;
+	let mediaQuery;
 
 	if (browser) {
-		isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+		mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+		isDarkMode = mediaQuery.matches;
+
+		const handleChange = (e) => {
 			isDarkMode = e.matches;
+		};
+
+		mediaQuery.addEventListener('change', handleChange);
+
+		onDestroy(() => {
+			mediaQuery.removeEventListener('change', handleChange);
 		});
 	}
-
-	onDestroy(() => {
-  window.removeEventListener('change');
-});
 
 	function toggleDarkMode() {
 		isDarkMode = !isDarkMode;
@@ -28,7 +33,7 @@
 		<button
 			id="theme-toggle"
 			on:click={toggleDarkMode}
-			class="px-4 py-2 bg-none text-black dark:bg-blue-12 bg-slate-3 rounded-sm"
+			class="rounded-sm bg-slate-3 bg-none px-4 py-2 text-black dark:bg-blue-12"
 		>
 			<IconSun /></button
 		>
@@ -36,7 +41,7 @@
 		<button
 			id="theme-toggle"
 			on:click={toggleDarkMode}
-			class="px-4 py-2  text-blue-1 bg-blue-12  rounded-sm"
+			class="rounded-sm bg-blue-12 px-4 py-2 text-blue-1"
 		>
 			<IconMoon /></button
 		>
