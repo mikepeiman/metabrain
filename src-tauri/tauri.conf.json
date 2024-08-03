@@ -42,7 +42,7 @@
   },
   "productName": "metabrain",
   "version": "0.1.0",
-  "identifier": "metabrain.io",
+  "identifier": "metabrain",
   "plugins": {},
   "app": {
     "windows": [
