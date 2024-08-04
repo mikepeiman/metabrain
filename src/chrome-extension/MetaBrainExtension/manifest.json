@@ -13,6 +13,7 @@
    "background": {
      "service_worker": "background.js"
    },
+   "service_worker": "background.js",
    "action": {
      "default_icon": "img/icon.png",
      "default_title": "Metabrain",
