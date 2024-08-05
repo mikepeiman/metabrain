@@ -2,8 +2,7 @@
    "manifest_version": 3,
    "name": "Metabrain",
    "version": "0.1.0",
-   "description": "Your Operating System For Life",
-   "minimum_chrome_version": "42.0.0.0",
+   "description": "Metabrain browser integration extension",
    "offline_enabled": true,
    "icons": {
       "16": "img/favicon.png",
@@ -22,14 +21,27 @@
    "permissions": [
       "storage",
       "tabs",
+      "tabGroups",
+      "sessions",
+      "search",
+      "topSites",
+      "desktopCapture",
+      "documentScan",
+      "downloads",
+      "contextMenus",
+      "clipboardRead",
+      "clipboardWrite",
       "bookmarks",
       "unlimitedStorage",
       "identity",
-      "nativeMessaging"
+      "favicon",
+      "nativeMessaging",
+      "notifications",
+      "activeTab",
+      "http://localhost:5432/"
    ],
    "optional_permissions": [
       "identity.email",
       "clipboardRead"
-   ],
-   "update_url": "https://clients2.google.com/service/update2/crx"
+   ]
 }

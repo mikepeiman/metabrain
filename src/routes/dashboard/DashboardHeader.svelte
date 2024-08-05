@@ -17,7 +17,7 @@
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
-	import placeholderImg from '$images/placeholder.jpg';
+	import placeholderImg from '/images/placeholder.jpg';
 </script>
 
 		<header
