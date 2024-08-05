@@ -6,30 +6,30 @@
    "minimum_chrome_version": "42.0.0.0",
    "offline_enabled": true,
    "icons": {
-     "16": "img/favicon.png",
-     "32": "img/32x32.png",
-     "128": "img/128x128.png"
+      "16": "img/favicon.png",
+      "32": "img/32x32.png",
+      "128": "img/128x128.png"
    },
    "background": {
-     "service_worker": "background.js"
+      "service_worker": "service_worker.js",
+      "type": "module"
    },
-   "service_worker": "background.js",
    "action": {
-     "default_icon": "img/icon.png",
-     "default_title": "Metabrain",
-     "default_popup": "popup.html"
+      "default_icon": "img/icon.png",
+      "default_title": "Metabrain",
+      "default_popup": "popup.html"
    },
    "permissions": [
-     "storage",
-     "tabs",
-     "bookmarks",
-     "unlimitedStorage",
-     "identity",
-     "nativeMessaging"
+      "storage",
+      "tabs",
+      "bookmarks",
+      "unlimitedStorage",
+      "identity",
+      "nativeMessaging"
    ],
    "optional_permissions": [
-     "identity.email",
-     "clipboardRead"
+      "identity.email",
+      "clipboardRead"
    ],
    "update_url": "https://clients2.google.com/service/update2/crx"
- }
+}

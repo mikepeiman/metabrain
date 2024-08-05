@@ -1,4 +1,4 @@
-console.log(`Metabrain service worker loaded`)
+console.log(`Metabrain service worker loaded, background SW`)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log(`🚀 ~ chrome.runtime.onMessage.addListener ~ request:`, request)
     if (request.action === 'send_message') {
