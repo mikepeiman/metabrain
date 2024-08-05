@@ -18,6 +18,7 @@
       "default_title": "Metabrain",
       "default_popup": "popup.html"
    },
+   "host_permissions": ["<all_urls>"],
    "permissions": [
       "storage",
       "tabs",
@@ -26,7 +27,6 @@
       "search",
       "topSites",
       "desktopCapture",
-      "documentScan",
       "downloads",
       "contextMenus",
       "clipboardRead",
@@ -38,10 +38,6 @@
       "nativeMessaging",
       "notifications",
       "activeTab",
-      "http://localhost:5432/"
-   ],
-   "optional_permissions": [
-      "identity.email",
-      "clipboardRead"
+      "webNavigation"
    ]
 }
